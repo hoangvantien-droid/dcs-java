@@ -146,8 +146,8 @@ class McpEndpointIT {
         var seed = DbSupport.seed();
         String docId = "IT-MCP-OOS-" + System.currentTimeMillis();
         created.add(docId);
+        // Tài liệu do author (QA MML) đăng ký, rồi ép scope sang dept HCM (QA2).
         registerGroupDocWithMarkdown(docId, seed.authorId, "noi dung bi mat");
-        // Ép ngoài phạm vi: chuyển scope sang dept HCM (author thuộc QA MML → không thấy).
         String hcmDept = DbSupport.plainJdbc().queryForObject(
                 "SELECT dept_id::text FROM org_department WHERE dept_code = 'QA2'", String.class);
         DbSupport.tx().execute(s -> {
@@ -157,7 +157,11 @@ class McpEndpointIT {
             return null;
         });
 
-        String sessionId = DbSupport.tx().execute(s -> sessions.createSession(seed.authorId));
+        // Người gọi là Reader (QA MML): KHÔNG phải người đăng ký, KHÔNG thuộc QA2,
+        // không phải Admin ⇒ ngoài phạm vi THẬT. (Nếu gọi bằng chính author thì
+        // nhánh registrant_user_id trong canViewVersion vẫn cho xem tài liệu của
+        // mình — không tạo được tình huống ngoài phạm vi.)
+        String sessionId = DbSupport.tx().execute(s -> sessions.createSession(seed.readerId));
 
         // Ngoài phạm vi.
         var oos = markdownCall(docId, sessionId);
