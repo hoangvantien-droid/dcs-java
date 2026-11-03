@@ -60,6 +60,9 @@ public final class DbSupport {
     private static ObjectMapper objectMapper;
     private static Seed seed;
     private static Object container; // org.testcontainers...PostgreSQLContainer (qua reflection để tránh cứng phụ thuộc)
+    private static String resolvedJdbcUrl;  // URL JDBC cuối cùng (có stringtype=unspecified)
+    private static String resolvedUsername;
+    private static String resolvedPassword;
 
     private DbSupport() {
     }
@@ -67,6 +70,26 @@ public final class DbSupport {
     public static synchronized boolean dbOk() {
         ensureInit();
         return dbOk;
+    }
+
+    /**
+     * URL JDBC đã phân giải (env/container) — dùng cho @DynamicPropertySource của
+     * test HTTP thật (UAT *IT) để Spring Boot nối CÙNG DB đã migrate + seed. Trả
+     * null khi không có DB (test HTTP tự-skip qua @EnabledIf dbOk).
+     */
+    public static String jdbcUrl() {
+        ensureInit();
+        return resolvedJdbcUrl;
+    }
+
+    public static String username() {
+        ensureInit();
+        return resolvedUsername;
+    }
+
+    public static String password() {
+        ensureInit();
+        return resolvedPassword;
     }
 
     public static NamedParameterJdbcTemplate jdbc() {
@@ -154,6 +177,9 @@ public final class DbSupport {
             ds.setUsername(user);
             ds.setPassword(pw);
         }
+        resolvedJdbcUrl = jdbcUrl;
+        resolvedUsername = user;
+        resolvedPassword = pw;
         return ds;
     }
 
@@ -180,10 +206,14 @@ public final class DbSupport {
         pg.start();
         container = pg;
         Runtime.getRuntime().addShutdownHook(new Thread(pg::stop));
-        DriverManagerDataSource ds = new DriverManagerDataSource(withStringtypeUnspecified(pg.getJdbcUrl()));
+        String jdbcUrl = withStringtypeUnspecified(pg.getJdbcUrl());
+        DriverManagerDataSource ds = new DriverManagerDataSource(jdbcUrl);
         ds.setDriverClassName("org.postgresql.Driver");
         ds.setUsername(pg.getUsername());
         ds.setPassword(pg.getPassword());
+        resolvedJdbcUrl = jdbcUrl;
+        resolvedUsername = pg.getUsername();
+        resolvedPassword = pg.getPassword();
         return ds;
     }
 
