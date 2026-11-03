@@ -14,9 +14,9 @@
   <main class="verify-card verify-ok" th:if="${r.found and r.status == 'con_hieu_luc'}">
     <div class="verify-big">✓</div>
     <p>Bản này CÒN HIỆU LỰC.</p>
-    <p class="verify-sub" th:if="${r.siteCode}">
+    <p class="verify-sub" th:if="${r.siteCode != null}">
       <span th:text="'Site ' + ${r.siteCode}">Site</span>
-      <span th:if="${r.receiptStatus == 'chap_nhan'}"> — đã xác nhận tiếp nhận<span th:if="${r.applyDate}" th:text="' từ ' + ${r.applyDate}"></span></span>
+      <span th:if="${r.receiptStatus == 'chap_nhan'}"> — đã xác nhận tiếp nhận<span th:if="${r.applyDate != null}" th:text="' từ ' + ${r.applyDate}"></span></span>
     </p>
   </main>
   <main class="verify-card verify-bad" th:if="${r.found and r.status == 'chua_tiep_nhan'}">
@@ -35,14 +35,16 @@
         th:if="${r.found and r.status != 'con_hieu_luc' and r.status != 'chua_tiep_nhan' and r.status != 'tu_choi_tiep_nhan'}">
     <div class="verify-big">✕</div>
     <p th:if="${r.status == 'het_hieu_luc'}">
-      Bản này ĐÃ LỖI THỜI<span th:if="${r.currentVersionNo}" th:text="' — bản hiện hành là phiên bản ' + ${r.currentVersionNo}"></span>.
+      Bản này ĐÃ LỖI THỜI<span th:if="${r.currentVersionNo != null}" th:text="' — bản hiện hành là phiên bản ' + ${r.currentVersionNo}"></span>.
     </p>
     <p th:if="${r.status == 'thu_hoi'}">Tài liệu này ĐÃ THU HỒI.</p>
     <p th:if="${r.status == 'ban_in_thu_hoi'}">Bản in này ĐÃ ĐƯỢC THU HỒI.</p>
     <p th:if="${r.status == 'khong_ro'}">Không xác định được tình trạng — hỏi người kiểm soát tài liệu.</p>
   </main>
-  <footer class="verify-foot" th:if="${r.found and r.docId}">
-    <span th:text="${r.docId} + (${r.versionNo} != null ? ' · phiên bản ' + ${r.versionNo} : '')">doc</span>
+  <footer class="verify-foot" th:if="${r.found and r.docId != null}">
+    <span>
+      <span th:text="${r.docId}">doc</span><span th:if="${r.versionNo != null}" th:text="' · phiên bản ' + ${r.versionNo}"></span>
+    </span>
   </footer>
 </body>
 </html>

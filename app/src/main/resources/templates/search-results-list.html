@@ -22,10 +22,10 @@
           <span th:if="${h.effectiveDate}" th:text="' · Hiệu lực ' + ${#strings.substring(h.effectiveDate,0,T(java.lang.Math).min(10,h.effectiveDate.length()))}"></span>
           <span th:if="${h.departmentName}" th:text="' · ' + ${h.departmentName}"></span>
         </div>
-        <div class="result-card__snippet" th:if="${h.matchLevel == 'section' and h.snippet}">
+        <div class="result-card__snippet" th:if="${h.matchLevel == 'section' and h.snippet != null}">
           <strong th:text="${h.sectionCode} + ' ' + ${h.sectionTitle} + ':'">mục</strong> <span class="hl" th:text="${h.snippet}"></span>
         </div>
-        <div class="result-card__snippet" th:if="${h.matchLevel == 'fulltext' and h.snippet}">
+        <div class="result-card__snippet" th:if="${h.matchLevel == 'fulltext' and h.snippet != null}">
           <span class="hl" th:text="${h.snippet}"></span>
         </div>
       </li>

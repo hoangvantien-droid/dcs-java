@@ -27,7 +27,7 @@
       <td data-label="Tiêu đề" th:text="${d.title}">title</td>
       <td data-label="Trạng thái">
         <span th:classappend="'status status-' + ${d.status}" th:text="${labels.docStatusLabel(d.status)}">trạng thái</span>
-        <div class="reject-reason" th:if="${d.status == 'tu_choi' and d.rejectionReason}" th:text="'Lý do: ' + ${d.rejectionReason}"></div>
+        <div class="reject-reason" th:if="${d.status == 'tu_choi' and d.rejectionReason != null}" th:text="'Lý do: ' + ${d.rejectionReason}"></div>
       </td>
       <td data-label="Site xác nhận">
         <span th:if="${d.total > 0}" th:text="${d.accepted} + '/' + ${d.total}">0/0</span>

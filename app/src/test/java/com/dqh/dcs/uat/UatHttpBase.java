@@ -68,25 +68,21 @@ public abstract class UatHttpBase {
     @BeforeEach
     void requireDb() {
         Assumptions.assumeTrue(DbSupport.dbOk(), "Không có Docker/DB — bỏ qua UAT IT");
-        // SimpleClientHttpRequestFactory: KHÔNG theo redirect (đọc 302) + KHÔNG
-        // streaming output (tránh lỗi 'cannot retry ... in streaming mode' khi
-        // POST nhận 401/4xx). buffer=false vẫn giữ response readable vì tắt stream.
-        NoRedirectSimpleFactory f = new NoRedirectSimpleFactory();
-        f.setOutputStreaming(false);
-        f.setConnectTimeout(10_000);
-        f.setReadTimeout(30_000);
+        // Dùng JDK HttpClient (KHÔNG phải HttpURLConnection). Lý do: khi server
+        // trả 401 KÈM WWW-Authenticate (đăng nhập sai, /mcp thiếu cookie),
+        // HttpURLConnection dưới SimpleClientHttpRequestFactory TỰ ĐỘNG thử lại
+        // xác thực và ném HttpRetryException ('cannot retry ... in streaming
+        // mode') thay vì trả status cho test. JDK HttpClient KHÔNG tự xác thực
+        // khi không gán Authenticator, nên đọc 401 bình thường. Redirect.NEVER
+        // giữ nguyên hành vi đọc 302 + Set-Cookie mà test đang dựa vào.
+        java.net.http.HttpClient client = java.net.http.HttpClient.newBuilder()
+                .followRedirects(java.net.http.HttpClient.Redirect.NEVER)
+                .connectTimeout(java.time.Duration.ofSeconds(10))
+                .build();
+        org.springframework.http.client.JdkClientHttpRequestFactory f =
+                new org.springframework.http.client.JdkClientHttpRequestFactory(client);
+        f.setReadTimeout(java.time.Duration.ofSeconds(30));
         rest.getRestTemplate().setRequestFactory(f);
-    }
-
-    /** SimpleClientHttpRequestFactory tắt instanceFollowRedirects (đọc được 302). */
-    private static final class NoRedirectSimpleFactory
-            extends org.springframework.http.client.SimpleClientHttpRequestFactory {
-        @Override
-        protected void prepareConnection(java.net.HttpURLConnection connection, String httpMethod)
-                throws java.io.IOException {
-            super.prepareConnection(connection, httpMethod);
-            connection.setInstanceFollowRedirects(false);
-        }
     }
 
     /**

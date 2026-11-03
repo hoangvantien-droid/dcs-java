@@ -351,10 +351,18 @@ public final class DbSupport {
                 userId, roleCode, scopeLevel, buId, siteId, deptId);
     }
 
-    /** Dọn một tài liệu test (receipt cascade qua version). */
+    /**
+     * Dọn một tài liệu test. Hầu hết bảng con tham chiếu version_id là ON DELETE
+     * CASCADE (sections, chunks, receipt, ack, review...), nhưng printed_copies
+     * dùng ON DELETE RESTRICT (schema 001) — nên phải XOÁ printed_copies theo các
+     * version của doc TRƯỚC khi xoá document_versions, nếu không teardown vỡ với
+     * printed_copies_version_id_fkey (UatPrintVerifyIT sinh printed_copies).
+     */
     public static void cleanupDoc(String docId) {
         tx().execute(status -> {
             JdbcTemplate db = new JdbcTemplate(dataSource);
+            db.update("DELETE FROM printed_copies WHERE version_id IN "
+                    + "(SELECT version_id FROM document_versions WHERE doc_id = ?)", docId);
             db.update("DELETE FROM document_versions WHERE doc_id = ?", docId);
             db.update("DELETE FROM documents WHERE doc_id = ?", docId);
             return null;
