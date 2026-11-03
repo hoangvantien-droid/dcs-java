@@ -1,0 +1,45 @@
+# CI — chạy ĐẦY ĐỦ test của app Java (DCS GD2 port).
+#
+# Mục tiêu: chạy THẬT 8 file *IT.java (21 integration test) — các luồng
+# per-site effective, apply_date, supersede, IND-01/04, permission matrix,
+# ack-context — thay vì tự skip như trên máy build không có Docker.
+#
+# Cách IT nối DB (xác định theo app/src/test/.../support/DbSupport.java):
+#   DbSupport tự spin một PostgreSQLContainer qua Testcontainers khi KHÔNG có
+#   env DATABASE_URL_TEST/DATABASE_URL. Image cứng trong mã nguồn là
+#   'pgvector/pgvector:pg16' vì 001_schema.sql có `CREATE EXTENSION vector`
+#   và cột `embedding vector(1536)` — postgres:16 thường sẽ fail CREATE EXTENSION.
+#   => Trên CI chỉ cần Docker (ubuntu-latest có sẵn) + JDK 17; KHÔNG cần khai báo
+#      services.postgres và KHÔNG cần biến môi trường ứng dụng, vì các *IT.java
+#      không bật Spring context (không có @SpringBootTest) mà dựng service trực
+#      tiếp trên DataSource của DbSupport. dbOk()=true nên Assumptions không skip.
+
+name: ci
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest   # runner có sẵn Docker cho Testcontainers
+    env:
+      # Hosted runner: tắt Ryuk resource-reaper để tránh trục trặc dọn container.
+      TESTCONTAINERS_RYUK_DISABLED: "true"
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      # `mvn verify` chạy pha test (surefire) vốn đã include **/*Test.java và
+      # **/*IT.java (xem app/pom.xml). Testcontainers tự kéo image
+      # pgvector/pgvector:pg16 và spin container trên Docker của runner, nên
+      # 21 integration test chạy THẬT. Unit test chạy cùng pha.
+      - name: Build + test (unit + integration)
+        run: mvn -B -f app/pom.xml verify
