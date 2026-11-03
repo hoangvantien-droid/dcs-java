@@ -1,0 +1,26 @@
+spring:
+  application:
+    name: dcs
+  datasource:
+    # DATABASE_URL = JDBC Postgres (vd jdbc:postgresql://host:5432/dcs). username/password
+    # có thể nằm trong URL hoặc tách qua DB_USER/DB_PASS.
+    url: ${DATABASE_URL}
+    username: ${DB_USER:}
+    password: ${DB_PASS:}
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      # QĐ-D: mọi phiên DB chạy theo lịch Việt Nam.
+      connection-init-sql: "SET TIME ZONE 'Asia/Ho_Chi_Minh'"
+      maximum-pool-size: ${DB_POOL_MAX:10}
+  servlet:
+    multipart:
+      max-file-size: 25MB
+      max-request-size: 25MB
+  # KHÔNG khai spring.jpa (không JPA/Hibernate).
+  # KHÔNG khai spring.flyway → Flyway tắt (schema đã provisioned sẵn).
+
+server:
+  port: ${PORT:3000}
+  servlet:
+    # QĐ-F: thay applyBasePath của eta; rỗng = chạy ở root.
+    context-path: ${BASE_PATH:}
