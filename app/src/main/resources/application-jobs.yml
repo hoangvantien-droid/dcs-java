@@ -1,0 +1,5 @@
+# Profile 'jobs' (QĐ-H, DailyJobsRunner): chạy ONESHOT, KHÔNG mở cổng web.
+# Tách tiến trình khỏi máy chủ web để trả sạch bộ nhớ trên máy 1 GB (DCS-8 §1.2).
+spring:
+  main:
+    web-application-type: none

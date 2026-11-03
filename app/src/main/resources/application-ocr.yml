@@ -1,0 +1,5 @@
+# Profile 'ocr' (OcrWorker): chạy ONESHOT mỗi lần một tệp, KHÔNG mở cổng web.
+# Dùng bởi systemd ExecStartPost sau DailyJobsRunner (deploy/dcs-jobs.service).
+spring:
+  main:
+    web-application-type: none
