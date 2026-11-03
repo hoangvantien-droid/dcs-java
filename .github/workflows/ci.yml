@@ -5,14 +5,14 @@
 # ack-context — thay vì tự skip như trên máy build không có Docker.
 #
 # Cách IT nối DB (xác định theo app/src/test/.../support/DbSupport.java):
-#   DbSupport tự spin một PostgreSQLContainer qua Testcontainers khi KHÔNG có
-#   env DATABASE_URL_TEST/DATABASE_URL. Image cứng trong mã nguồn là
-#   'pgvector/pgvector:pg16' vì 001_schema.sql có `CREATE EXTENSION vector`
-#   và cột `embedding vector(1536)` — postgres:16 thường sẽ fail CREATE EXTENSION.
-#   => Trên CI chỉ cần Docker (ubuntu-latest có sẵn) + JDK 17; KHÔNG cần khai báo
-#      services.postgres và KHÔNG cần biến môi trường ứng dụng, vì các *IT.java
-#      không bật Spring context (không có @SpringBootTest) mà dựng service trực
-#      tiếp trên DataSource của DbSupport. dbOk()=true nên Assumptions không skip.
+#   DbSupport thử theo thứ tự: env DATABASE_URL_TEST → DATABASE_URL →
+#   Testcontainers. Dùng Testcontainers trên hosted runner hay bị lỗi chọn
+#   strategy (DockerDesktop getSocketPath()=null → NPE) khiến IT tự-skip =>
+#   "xanh giả". Nên ở đây dùng PostgreSQL SERVICE CONTAINER + đặt
+#   DATABASE_URL_TEST để DbSupport đi THẲNG nhánh env, bỏ qua Testcontainers.
+#   Image BẮT BUỘC là pgvector/pgvector:pg16 vì 001_schema.sql có
+#   `CREATE EXTENSION vector` + cột embedding vector(1536) — postgres:16 thường
+#   sẽ fail khi nạp migration.
 
 name: ci
 
@@ -22,10 +22,29 @@ on:
 
 jobs:
   build-and-test:
-    runs-on: ubuntu-latest   # runner có sẵn Docker cho Testcontainers
+    runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: pgvector/pgvector:pg16
+        env:
+          POSTGRES_USER: dcs
+          POSTGRES_PASSWORD: dcs
+          # Tên DB chứa 'test' theo quy ước an toàn của bộ test.
+          POSTGRES_DB: dcs_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U dcs -d dcs_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 10
+
     env:
-      # Hosted runner: tắt Ryuk resource-reaper để tránh trục trặc dọn container.
-      TESTCONTAINERS_RYUK_DISABLED: "true"
+      # DbSupport ưu tiên DATABASE_URL_TEST → đi thẳng nhánh env (không
+      # Testcontainers). DbSupport tự nạp 28 .sql + seed vào DB rỗng này.
+      DATABASE_URL_TEST: postgres://dcs:dcs@localhost:5432/dcs_test
+
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -37,9 +56,28 @@ jobs:
           java-version: "17"
           cache: maven
 
-      # `mvn verify` chạy pha test (surefire) vốn đã include **/*Test.java và
-      # **/*IT.java (xem app/pom.xml). Testcontainers tự kéo image
-      # pgvector/pgvector:pg16 và spin container trên Docker của runner, nên
-      # 21 integration test chạy THẬT. Unit test chạy cùng pha.
+      # `mvn verify` chạy pha test (surefire include cả **/*Test.java và
+      # **/*IT.java theo app/pom.xml). IT nối vào service Postgres qua
+      # DATABASE_URL_TEST nên dbOk()=true → 21 integration test CHẠY THẬT,
+      # KHÔNG self-skip. Unit test chạy cùng pha.
       - name: Build + test (unit + integration)
         run: mvn -B -f app/pom.xml verify
+
+      # Chốt an toàn: fail job nếu vì lý do nào đó integration test vẫn bị skip
+      # (tránh "xanh giả"). Surefire ghi tổng kết vào các file XML; đếm
+      # testcase bị <skipped> trong target/surefire-reports.
+      - name: Guard — integration tests phải CHẠY (không skip)
+        if: always()
+        run: |
+          set -e
+          reports=app/target/surefire-reports
+          if [ ! -d "$reports" ]; then
+            echo "Không thấy surefire-reports — build chưa chạy test."; exit 1
+          fi
+          skipped=$(grep -rhoE 'skipped="[0-9]+"' "$reports"/*.xml | grep -oE '[0-9]+' | awk '{s+=$1} END{print s+0}')
+          echo "Tổng test bị skip: $skipped"
+          if [ "$skipped" -gt 0 ]; then
+            echo "::error::Có $skipped test bị skip — integration test KHÔNG chạy (nghi xanh giả). Kiểm DB service / DATABASE_URL_TEST."
+            exit 1
+          fi
+          echo "OK: không test nào bị skip — integration đã chạy thật."
