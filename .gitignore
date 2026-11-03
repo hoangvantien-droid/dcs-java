@@ -1,0 +1,22 @@
+# Bundled toolchain (JDK / Maven binaries) — not source
+.tools/
+
+# Agent task metadata / local tooling state
+.agents/
+
+# Archives
+*.zip
+
+# Maven build output
+target/
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+.DS_Store
