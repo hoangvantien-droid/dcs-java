@@ -68,10 +68,12 @@
 **IF** receipt đã `chap_nhan` và loại `sai_noi_dung` **THEN** report → `bao_sai_noi_dung_sau_chap_nhan`, receipt GIỮ `chap_nhan`, audit riêng (không còn lệch dữ liệu).
 → `convertReportToRejection` (`issue-report.ts:130-194`); enum + event mới ở `027_report_content_error_after_accept.sql`.
 
-## BR-13 — apply_date = ngày hiệu lực của site, không sớm hơn ngày hiệu lực gốc (điểm 8 + D2)
+## BR-13 — apply_date = ngày hiệu lực ĐỘC LẬP của site (điểm 8 + D2, HƯỚNG 2)
 **IF** DC Site chấp nhận receipt
-**THEN** `apply_date = coalesce(site_effective_date, effective_date)` (**D2: KHÔNG dùng today()/ngày bấm**); nếu không có ngày nào → chặn `receipt.no_effective`; nếu `apply_date < effective_date` gốc → chặn `receipt.apply_before_effective`.
-→ `acceptReceipt` (`receipt.ts`); ràng buộc DB `chk_receipt_apply_date` (chấp nhận phải có apply_date, `017_receipt_model.sql`). "Chấp nhận" = đồng ý với ngày đã khai; route `/accept` không nhận `apply_date` (IND-03). [mới kiểm chứng đọc code]
+**THEN** `apply_date = coalesce(site_effective_date, effective_date)` (**D2: KHÔNG dùng today()/ngày bấm**); nếu không có ngày nào → chặn `receipt.no_effective`.
+→ `acceptReceipt` (`receipt.ts`); ràng buộc DB `chk_receipt_apply_date` (chấp nhận phải có apply_date, `017_receipt_model.sql`). "Chấp nhận" = đồng ý với ngày đã khai; route `/accept` không nhận `apply_date` (IND-03).
+
+**HƯỚNG 2 (người dùng chốt) — mỗi site có ngày hiệu lực độc lập:** guard cũ "apply_date không được sớm hơn `effective_date` gốc" (mã lỗi `receipt.apply_before_effective`) **ĐÃ BỊ GỠ**. Lý do: `apply_date = site_effective_date` của chính site đó; ràng buộc phải ≥ ngày hiệu lực gốc mâu thuẫn với mô hình per-site và tạo "khoảng ngày kẹt" — khi `site_effective_date` nằm trong `[issued_date, effective_date_gốc)` thì site qua được validate lúc thêm (chỉ chặn quá khứ + ≥ `issued_date`) nhưng khi bấm Chấp nhận LUÔN bị chặn → receipt kẹt vĩnh viễn. Nay `site_effective_date` của một site có thể SỚM hoặc MUỘN hơn ngày hiệu lực gốc; ràng buộc duy nhất là ≥ `issued_date` và ≥ hôm nay (giờ VN) tại thời điểm khai (BR-13b). Guard điểm 4 (`receipt.before_effective` — không chấp nhận TRƯỚC ngày hiệu lực của chính site đó) vẫn giữ nguyên.
 
 ## BR-13b — Ngày hiệu lực riêng theo site (phương án 2a — D1/D3/D4)
 **IF** một tài liệu đã ban hành ở site A cần hiệu lực ở site B vào ngày khác

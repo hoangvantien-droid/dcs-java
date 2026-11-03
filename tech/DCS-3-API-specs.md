@@ -72,7 +72,7 @@ Nguồn: `documents.ts:143-578`.
 |--------|------|-------|---------|----------|-----|
 | GET | `/site-receipts` | `requireUser`; DC Site | — | `site-receipts.eta` (hàng chờ + tài liệu bị thu hồi); `notControl=true` nếu không giữ site nào | — |
 | GET | `/site-receipts/:id` | `requireUser` + DC Site đúng site | — | `receipt-respond.eta` (detail + sections + cờ selfRegistered) | 403/404 |
-| POST | `/site-receipts/:id/accept` | như trên | — (**IND-03: KHÔNG nhận `apply_date`**) | `sendOk` → `/site-receipts` | `receipt.bad_status, receipt.recalled, receipt.superseded, receipt.before_effective, receipt.apply_before_effective, receipt.no_effective, receipt.no_permission(403)` |
+| POST | `/site-receipts/:id/accept` | như trên | — (**IND-03: KHÔNG nhận `apply_date`**) | `sendOk` → `/site-receipts` | `receipt.bad_status, receipt.recalled, receipt.superseded, receipt.before_effective, receipt.no_effective, receipt.no_permission(403)` (HƯỚNG 2: `apply_before_effective` đã gỡ — apply_date = site_effective_date độc lập) |
 | POST | `/site-receipts/:id/reject` | như trên | form `reject_type∈{sai_dang_ky,sai_noi_dung}`, `note` (bắt buộc) | `sendOk` → `/site-receipts` | 400 loại không hợp lệ; `receipt.reason`, các lỗi như trên |
 
 Nguồn: `receipts.ts`; `receipt.ts:acceptReceipt`.
