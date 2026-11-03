@@ -26,8 +26,8 @@
     <div class="topbar-right">
       <th:block th:if="${user}">
         <span class="avatar" aria-hidden="true"
-              th:text="${#strings.toUpperCase(#strings.substring((${user.fullName} ?: ${user.email} ?: '?'),0,1))}">?</span>
-        <span class="user-name" th:text="${user.fullName} ?: ${user.email}">User</span>
+              th:text="${#strings.toUpperCase(#strings.substring((user.fullName != null and !user.fullName.isEmpty()) ? user.fullName : ((user.email != null and !user.email.isEmpty()) ? user.email : '?'),0,1))}">?</span>
+        <span class="user-name" th:text="${user.fullName != null and !user.fullName.isEmpty()} ? ${user.fullName} : ${user.email}">User</span>
         <a class="logout" th:href="@{/logout}">Đăng xuất</a>
       </th:block>
       <a class="logout" th:href="@{/login}" th:unless="${user}">Đăng nhập</a>
