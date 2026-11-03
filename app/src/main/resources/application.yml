@@ -12,6 +12,12 @@ spring:
       # QĐ-D: mọi phiên DB chạy theo lịch Việt Nam.
       connection-init-sql: "SET TIME ZONE 'Asia/Ho_Chi_Minh'"
       maximum-pool-size: ${DB_POOL_MAX:10}
+      data-source-properties:
+        # Gửi tham số String với OID 'unspecified' để Postgres tự suy kiểu đích
+        # (uuid/date/enum...) ở phía server — giống driver `postgres` của bản Node.
+        # Tránh lỗi 'operator does not exist: uuid = character varying' khi so sánh
+        # cột uuid với param String qua Spring JDBC.
+        stringtype: unspecified
   servlet:
     multipart:
       max-file-size: 25MB

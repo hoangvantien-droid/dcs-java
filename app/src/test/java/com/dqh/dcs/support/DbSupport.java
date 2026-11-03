@@ -147,6 +147,7 @@ public final class DbSupport {
             String db = uri.getPath() == null ? "" : uri.getPath();
             jdbcUrl = "jdbc:postgresql://" + uri.getHost() + ":" + port + db;
         }
+        jdbcUrl = withStringtypeUnspecified(jdbcUrl);
         DriverManagerDataSource ds = new DriverManagerDataSource(jdbcUrl);
         ds.setDriverClassName("org.postgresql.Driver");
         if (user != null) {
@@ -154,6 +155,19 @@ public final class DbSupport {
             ds.setPassword(pw);
         }
         return ds;
+    }
+
+    /**
+     * Thêm tham số driver `stringtype=unspecified` vào JDBC URL để Postgres tự
+     * suy kiểu đích (uuid/date/enum...) cho param String — giống driver `postgres`
+     * của bản Node, tránh lỗi 'operator does not exist: uuid = character varying'.
+     * Giữ nguyên nếu URL đã khai stringtype.
+     */
+    private static String withStringtypeUnspecified(String jdbcUrl) {
+        if (jdbcUrl == null || jdbcUrl.contains("stringtype=")) {
+            return jdbcUrl;
+        }
+        return jdbcUrl + (jdbcUrl.contains("?") ? "&" : "?") + "stringtype=unspecified";
     }
 
     /** Khởi Testcontainers PostgreSQLContainer('pgvector/pgvector:pg16'). */
@@ -166,7 +180,7 @@ public final class DbSupport {
         pg.start();
         container = pg;
         Runtime.getRuntime().addShutdownHook(new Thread(pg::stop));
-        DriverManagerDataSource ds = new DriverManagerDataSource(pg.getJdbcUrl());
+        DriverManagerDataSource ds = new DriverManagerDataSource(withStringtypeUnspecified(pg.getJdbcUrl()));
         ds.setDriverClassName("org.postgresql.Driver");
         ds.setUsername(pg.getUsername());
         ds.setPassword(pg.getPassword());
