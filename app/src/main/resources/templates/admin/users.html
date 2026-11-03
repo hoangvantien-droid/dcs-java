@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Quản trị người dùng — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="warn-banner">
+  Người dùng khai tay chỉ dùng khi L1 chưa vận hành. Khi L1 lên, người dùng đồng bộ tự động.
+</div>
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Quản trị người dùng</h1>
+    <p class="page-header__desc">Tài khoản và gán bộ phận. Khai tay tạm thời khi L1 chưa vận hành.</p>
+  </div>
+</div>
+<div class="login-error" th:if="${error}" th:text="${error}">Lỗi</div>
+<div class="admin-layout">
+  <aside class="admin-panel">
+    <h2 class="admin-panel__title">Thêm người dùng</h2>
+    <form method="post" th:action="@{/admin/users}" class="admin-form">
+      <label>Họ tên <input name="full_name" placeholder="Nguyễn Văn A" required></label>
+      <label>Email <input name="email" type="email" placeholder="email@mml.masangroup.com" required></label>
+      <label>Mật khẩu <input name="password" type="password" placeholder="Tối thiểu 8 ký tự" required></label>
+      <button type="submit" class="btn-action btn-action--primary">Tạo người dùng</button>
+    </form>
+  </aside>
+  <div class="admin-data">
+    <p class="admin-data__subtitle" th:text="'Danh sách người dùng (' + ${users.size()} + ')'">Danh sách</p>
+    <table class="data-table responsive-table">
+      <thead><tr><th>Họ tên</th><th>Email</th><th>Trạng thái</th><th>Bộ phận</th><th>Thao tác</th></tr></thead>
+      <tbody>
+        <tr th:each="u : ${users}">
+          <td data-label="Họ tên" th:text="${u.fullName}">tên</td>
+          <td data-label="Email" th:text="${u.email}">email</td>
+          <td data-label="Trạng thái">
+            <span th:if="${u.active}" class="status-pill--active">Hoạt động</span>
+            <span th:unless="${u.active}">Ngừng</span>
+          </td>
+          <td data-label="Bộ phận">
+            <span class="chip" th:each="did : ${deptsByUser.get(u.userId)}"
+                  th:with="d=${depts.^[deptId == did]}">
+              <span th:text="${d != null} ? ${d.deptCode} : ${did}">dept</span>
+              <form method="post" th:action="@{/admin/users/remove-dept}" style="display:inline">
+                <input type="hidden" name="user_id" th:value="${u.userId}">
+                <input type="hidden" name="dept_id" th:value="${did}">
+                <button type="submit" class="chip-x" title="Xóa phòng ban này">×</button>
+              </form>
+            </span>
+          </td>
+          <td data-label="Thao tác">
+            <div class="user-actions">
+              <form method="post" th:action="@{/admin/users/assign-dept}" class="inline-form">
+                <input type="hidden" name="user_id" th:value="${u.userId}">
+                <select name="dept_id" required>
+                  <option value="">-- gán bộ phận --</option>
+                  <option th:each="d : ${depts}" th:value="${d.deptId}" th:text="${d.deptCode}">dept</option>
+                </select>
+                <button type="submit">Gán</button>
+              </form>
+              <form method="post" th:action="@{/admin/users/active}" class="inline-form">
+                <input type="hidden" name="user_id" th:value="${u.userId}">
+                <input type="hidden" name="active" th:value="${u.active} ? 'false' : 'true'">
+                <button type="submit" class="btn-deactivate" th:text="${u.active} ? 'Ngừng' : 'Bật lại'">Ngừng</button>
+              </form>
+              <form th:if="${u.active}" method="post" th:action="@{/admin/users/delete}" class="inline-form">
+                <input type="hidden" name="user_id" th:value="${u.userId}">
+                <button type="submit" class="btn--danger" onclick="return confirm('Xoá mềm user này? Họ sẽ không đăng nhập được nhưng dữ liệu giữ nguyên.')">Xoá</button>
+              </form>
+            </div>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+</div>
+</body>
+</html>

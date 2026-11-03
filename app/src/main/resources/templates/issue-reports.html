@@ -1,0 +1,59 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Báo bất thường — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Báo bất thường từ người đọc</h1>
+  </div>
+</div>
+<div class="alert-banner alert-banner--info" th:if="${notControl}">
+  <strong>Thông tin:</strong> Bạn chưa được gán vai Kiểm soát tài liệu cho site nào.
+</div>
+<th:block th:unless="${notControl}">
+  <p class="muted">Report do người đọc trong site gửi lên. Thẩm định rồi chuyển thành phản hồi từ chối tới người đăng ký, hoặc bác bỏ nếu không hợp lệ.</p>
+  <div class="empty-state" th:if="${reports.isEmpty()}">
+    <p class="empty-state__reason">Không có report nào chờ thẩm định.</p>
+  </div>
+  <div class="report-list">
+    <article class="report-card" th:each="r : ${reports}">
+      <div class="report-card__head">
+        <a class="report-card__doc" th:href="@{/documents/{id}(id=${r.versionId})}" th:text="${r.docId} + ' v' + ${r.versionNo}">doc</a>
+        <span class="report-card__title" th:text="${r.title}">title</span>
+      </div>
+      <div class="report-card__meta"
+           th:text="'Site ' + ${r.siteCode} + ' · người báo ' + (${r.reporterName} ?: ${r.reportedBy}) + ' · ' + (${r.createdAt} != null ? #strings.substring(r.createdAt,0,T(java.lang.Math).min(10,r.createdAt.length())) : '')">meta</div>
+      <blockquote class="report-card__note" th:text="${r.note}">note</blockquote>
+      <div class="report-card__actions">
+        <form method="post" th:action="@{/issue-reports/{id}/convert(id=${r.reportId})}" class="report-form"
+              th:attr="hx-post=@{/issue-reports/{id}/convert(id=${r.reportId})}" hx-target="#toast-zone" hx-swap="beforeend">
+          <div class="report-form__title">Chuyển thành phản hồi từ chối</div>
+          <label>Loại sai sót
+            <select name="reject_type" required>
+              <option value="sai_dang_ky">Sai thông tin đăng ký</option>
+              <option value="sai_noi_dung">Sai nội dung tài liệu</option>
+            </select>
+          </label>
+          <label>Ghi chú (tuỳ chọn)
+            <input name="note" placeholder="Bổ sung cho người đăng ký">
+          </label>
+          <button type="submit" class="primary">Chuyển thành từ chối</button>
+        </form>
+        <form method="post" th:action="@{/issue-reports/{id}/dismiss(id=${r.reportId})}" class="report-form"
+              th:attr="hx-post=@{/issue-reports/{id}/dismiss(id=${r.reportId})}" hx-target="#toast-zone" hx-swap="beforeend">
+          <div class="report-form__title">Bác bỏ report</div>
+          <label>Lý do bác bỏ <span class="req">*</span>
+            <input name="review_note" required placeholder="Vì sao không chuyển">
+          </label>
+          <button type="submit" class="btn-diff">Bác bỏ</button>
+        </form>
+      </div>
+    </article>
+  </div>
+</th:block>
+</div>
+</body>
+</html>

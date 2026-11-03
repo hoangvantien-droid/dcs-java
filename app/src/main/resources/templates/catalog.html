@@ -1,0 +1,114 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Danh mục tài liệu — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Danh mục tài liệu</h1>
+    <p class="page-header__desc">Tra cứu tài liệu trong phạm vi của bạn. Lọc theo trạng thái, loại, site và ngày hiệu lực.</p>
+  </div>
+  <div class="toolbar">
+    <a th:if="${nav.canRegister}" th:href="@{/register}" class="btn-action btn-action--primary">Đăng ký tài liệu</a>
+    <a th:if="${nav.canRegister or nav.isSiteDocControl}" th:href="@{/documents/export.xlsx}" class="btn-action btn-action--neutral">Xuất danh mục Excel</a>
+  </div>
+</div>
+<div class="quick-filters">
+  <a th:href="@{/documents(preset='hieu_luc')}">Đang hiệu lực</a> ·
+  <a th:href="@{/documents(preset='new30')}">Mới ban hành 30 ngày</a> ·
+  <a th:href="@{/documents(preset='expiring30')}">Sắp hết hạn 30 ngày</a> ·
+  <a th:href="@{/documents(preset='overdue')}">Quá hạn rà soát</a> ·
+  <a th:href="@{/documents(preset='expired')}">Đã hết hạn</a> ·
+  <a th:href="@{/documents}">Xóa lọc</a>
+</div>
+<form method="get" th:action="@{/documents}" class="filter-bar catalog-filters">
+  <label>Tìm: <input name="q" th:value="${filters.q} ?: ''" placeholder="số hiệu / tiêu đề"></label>
+  <label>Preset:
+    <select name="preset">
+      <option value="">--</option>
+      <option value="hieu_luc" th:selected="${filters.preset == 'hieu_luc'}">Đang hiệu lực</option>
+      <option value="new30" th:selected="${filters.preset == 'new30'}">Mới 30 ngày</option>
+      <option value="expiring30" th:selected="${filters.preset == 'expiring30'}">Sắp hết hạn</option>
+      <option value="overdue" th:selected="${filters.preset == 'overdue'}">Quá hạn rà soát</option>
+      <option value="expired" th:selected="${filters.preset == 'expired'}">Đã hết hạn</option>
+    </select>
+  </label>
+  <label>Trạng thái:
+    <select name="status">
+      <option value="">-- Tất cả --</option>
+      <option value="da_ban_hanh" th:selected="${statusFilter == 'da_ban_hanh'}">Đã ban hành</option>
+      <option value="thu_hoi" th:selected="${statusFilter == 'thu_hoi'}">Đã thu hồi</option>
+      <option value="het_hieu_luc" th:selected="${statusFilter == 'het_hieu_luc'}">Hết hiệu lực</option>
+      <option value="cho_hoan_thien" th:selected="${statusFilter == 'cho_hoan_thien'}">Nháp</option>
+    </select>
+  </label>
+  <label>Loại:
+    <select name="doc_type">
+      <option value="">--</option>
+      <option th:each="t : ${docTypes}" th:value="${t.code}" th:text="${t.label}" th:selected="${filters.docType == t.code}">SOP</option>
+    </select>
+  </label>
+  <label>Nguồn:
+    <select name="origin">
+      <option value="">--</option>
+      <option value="noi_bo" th:selected="${filters.origin == 'noi_bo'}">Nội bộ</option>
+      <option value="ngoai_bo" th:selected="${filters.origin == 'ngoai_bo'}">Ngoại bộ</option>
+    </select>
+  </label>
+  <label>Hiệu lực từ: <input type="date" name="eff_from" th:value="${filters.effFrom} ?: ''"></label>
+  <label>đến: <input type="date" name="eff_to" th:value="${filters.effTo} ?: ''"></label>
+  <label>Site áp dụng:
+    <select name="site_id">
+      <option value="">--</option>
+      <option th:each="s : ${sites}" th:value="${s.siteId}" th:selected="${filters.siteId == s.siteId}"
+              th:text="${s.siteCode} + ' — ' + ${s.name}">site</option>
+    </select>
+  </label>
+  <label>Tình trạng tiếp nhận:
+    <select name="rollout_status">
+      <option value="">--</option>
+      <option value="chua_ap_dung" th:selected="${filters.rolloutStatus == 'chua_ap_dung'}">Chờ phản hồi</option>
+      <option value="da_ap_dung" th:selected="${filters.rolloutStatus == 'da_ap_dung'}">Đã tiếp nhận</option>
+      <option value="tam_hoan" th:selected="${filters.rolloutStatus == 'tam_hoan'}">Đã từ chối</option>
+    </select>
+  </label>
+  <label>Sắp xếp:
+    <select name="sort">
+      <option value="hieu_luc_moi" th:selected="${filters.sort == 'hieu_luc_moi'}">Hiệu lực mới nhất</option>
+      <option value="ban_hanh_moi" th:selected="${filters.sort == 'ban_hanh_moi'}">Ban hành mới nhất</option>
+      <option value="sap_het_han" th:selected="${filters.sort == 'sap_het_han'}">Sắp hết hạn</option>
+      <option value="so_hieu" th:selected="${filters.sort == 'so_hieu'}">Số hiệu A-Z</option>
+    </select>
+  </label>
+  <div class="filter-bar__actions">
+    <button type="submit" class="btn-action btn-action--primary">Lọc</button>
+    <a th:href="@{/documents}" class="btn-action btn-action--neutral">Xóa lọc</a>
+  </div>
+</form>
+<table class="data-table responsive-table catalog-table">
+  <thead><tr><th>Số hiệu</th><th>PB</th><th>Tiêu đề</th><th>Loại</th><th>Phạm vi</th><th>Trạng thái</th><th>Hiệu lực</th><th>File PDF</th></tr></thead>
+  <tbody>
+    <tr th:each="d : ${docs}">
+      <td data-label="Số hiệu"><a th:href="@{/documents/{id}(id=${d.versionId})}" th:text="${d.docId}">doc</a></td>
+      <td data-label="PB" th:text="${d.versionNo}">1</td>
+      <td data-label="Tiêu đề" th:text="${d.title}">title</td>
+      <td data-label="Loại" th:text="${d.docType}">SOP</td>
+      <td data-label="Phạm vi" th:text="${labels.scopeLabel(d.scopeLevel)}">phạm vi</td>
+      <td data-label="Trạng thái"><span th:classappend="'status status-' + ${d.status}" th:text="${labels.docStatusLabel(d.status)}">trạng thái</span></td>
+      <td data-label="Hiệu lực" th:text="${d.effectiveDate} ?: ''"></td>
+      <td data-label="File PDF">
+        <th:block th:if="${d.status == 'da_ban_hanh' or d.status == 'da_dang_ky' or d.status == 'hieu_luc'}">
+          <a th:href="@{/documents/{id}/view(id=${d.versionId})}" target="_blank" rel="noopener">Xem PDF</a>
+          · <a th:href="@{/documents/{id}/download(id=${d.versionId})}">Tải</a>
+        </th:block>
+        <th:block th:unless="${d.status == 'da_ban_hanh' or d.status == 'da_dang_ky' or d.status == 'hieu_luc'}">—</th:block>
+      </td>
+    </tr>
+    <tr th:if="${docs.isEmpty()}"><td colspan="8" data-label="">Chưa có tài liệu nào trong phạm vi của bạn.</td></tr>
+  </tbody>
+</table>
+</div>
+</body>
+</html>

@@ -1,0 +1,14 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div class="suggest-empty" th:if="${hits.isEmpty()}">Không có gợi ý</div>
+<ul class="suggest-list" th:unless="${hits.isEmpty()}">
+  <li th:each="h : ${hits}">
+    <a th:href="@{/documents/{id}(id=${h.versionId})}">
+      <b th:text="${h.docId}">doc</b> <span th:text="'v' + ${h.versionNo} + ' — ' + ${h.title}"></span>
+      <span th:classappend="'status status-' + ${h.status}" th:text="${h.status}">status</span>
+    </a>
+  </li>
+</ul>
+</body>
+</html>

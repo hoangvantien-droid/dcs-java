@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Chi tiết — DCS</title></head>
+<body>
+<div layout:fragment="content" th:with="d=${d},
+     preRelease=${d.status == 'cho_xac_nhan' or d.status == 'cho_hoan_thien'},
+     pdfPath=${(d.status == 'cho_xac_nhan' or d.status == 'cho_hoan_thien') and isRegistrant ? 'preview' : 'view'}">
+<div class="detail-header">
+  <h1 th:text="${d.docId} + ' — phiên bản ' + ${d.versionNo}">Chi tiết</h1>
+  <p class="doc-title">
+    <span th:text="${d.title}">title</span>
+    · <span th:classappend="'status-label status-label--' + ${d.status}" th:text="${labels.docStatusLabel(d.status)}">trạng thái</span>
+    <span th:classappend="'scope-label scope-label--' + ${d.scopeLevel}" th:text="${labels.scopeLabel(d.scopeLevel)}">phạm vi</span>
+  </p>
+  <div class="detail-actions">
+    <a th:href="@{/documents/{id}/{p}(id=${d.versionId},p=${pdfPath})}" target="_blank" rel="noopener" class="btn-link">Mở PDF toàn màn hình</a>
+    <a th:unless="${preRelease}" th:href="@{/documents/{id}/download(id=${d.versionId})}" class="btn-link">Tải PDF</a>
+    <details class="print-box" th:if="${d.status == 'da_ban_hanh' or d.status == 'hieu_luc' or d.status == 'da_dang_ky'}">
+      <summary class="btn-diff">In bản sao có kiểm soát</summary>
+      <form method="post" th:action="@{/documents/{id}/print(id=${d.versionId})}" class="inline-form">
+        <label>Site áp dụng (gắn vào mã QR để tra cứu theo site)
+          <select name="site_id">
+            <option value="">— Không gắn site (tra cứu chung) —</option>
+            <option th:each="st : ${sites}" th:value="${st.siteId}" th:text="${st.siteCode} + ' — ' + ${st.name}">site</option>
+          </select>
+        </label>
+        <label>Vị trí đặt bản in (tuỳ chọn)<input name="location" placeholder="VD: Chuyền 1, phòng QA…"></label>
+        <button type="submit" class="primary">Tạo bản sao có kiểm soát</button>
+      </form>
+    </details>
+    <details class="report-box" th:if="${nav.canReport}">
+      <summary class="btn-report">Báo bất thường</summary>
+      <form method="post" th:action="@{/documents/{id}/report(id=${d.versionId})}" class="inline-form">
+        <label>Mô tả bất thường bạn phát hiện <span class="req">*</span>
+          <textarea name="note" rows="2" required placeholder="Ví dụ: sai ngày ban hành, nội dung không khớp thực tế…"></textarea>
+        </label>
+        <button type="submit" class="btn-report">Gửi báo cáo tới kiểm soát tài liệu site</button>
+      </form>
+    </details>
+    <form th:if="${isRegistrant and sections.isEmpty()}" method="post" th:action="@{/documents/{id}/process(id=${d.versionId})}" class="inline-form">
+      <button type="submit" class="btn-link">Bóc tách nội dung từ tệp</button>
+    </form>
+  </div>
+</div>
+<div class="alert-banner alert-banner--error" th:if="${d.status == 'het_hieu_luc'}"><strong>Lỗi:</strong> Bản này ĐÃ HẾT HIỆU LỰC.</div>
+<p class="detail-alert-link" th:if="${d.status == 'het_hieu_luc' and current != null}">
+  Bản đang áp dụng: <a th:href="@{/documents/{id}(id=${current.versionId})}" th:text="'phiên bản ' + ${current.versionNo}">bản</a>.
+</p>
+<div class="alert-banner alert-banner--error" th:if="${d.status == 'thu_hoi'}"><strong>Lỗi:</strong> <span th:text="'Tài liệu ĐÃ THU HỒI. Lý do: ' + (${d.recallReason} ?: '')"></span></div>
+<div class="alert-banner alert-banner--warning" th:if="${d.status != 'het_hieu_luc' and d.status != 'thu_hoi' and d.quaHanXemXet}"><strong>Cảnh báo:</strong> Tài liệu QUÁ HẠN RÀ SOÁT.</div>
+<div class="alert-banner alert-banner--error" th:if="${d.quaHanSuDung}"><strong>Lỗi:</strong> <span th:text="'Tài liệu ĐÃ QUÁ NGÀY HẾT HẠN (' + (${d.expiryDate} ?: '') + '). Kiểm tra trước khi sử dụng.'"></span></div>
+
+<form th:if="${ackState.show}" method="post" th:action="@{/documents/{id}/acknowledge(id=${d.versionId})}">
+  <button type="submit" class="primary">Xác nhận đã đọc</button>
+</form>
+<p class="ack-done" th:if="${!ackState.show and ackState.done}">
+  <span th:if="${ackState.inherited}">Đã xác nhận (kế thừa từ phiên bản trước do thay đổi nhỏ).</span>
+  <span th:unless="${ackState.inherited}">Bạn đã xác nhận đọc bản này.</span>
+</p>
+
+<dl class="detail-info-bar">
+  <div><dt>Loại</dt><dd th:text="${d.docType} + ' (' + ${d.origin} + ')'">loại</dd></div>
+  <div><dt>Phạm vi</dt><dd th:text="${labels.scopeLabel(d.scopeLevel)}">phạm vi</dd></div>
+  <div><dt>Ngày ban hành</dt><dd th:text="${d.issuedDate} ?: ''"></dd></div>
+  <div><dt>Ngày có hiệu lực</dt><dd th:text="${d.effectiveDate} ?: ''"></dd></div>
+  <div><dt>Xem xét tới</dt><dd th:text="${d.nextReviewDate} ?: ''"></dd></div>
+</dl>
+<section class="pdf-viewer">
+  <iframe class="pdf-frame" th:src="@{/documents/{id}/{p}(id=${d.versionId},p=${pdfPath})}" title="Nội dung PDF tài liệu"></iframe>
+  <p class="pdf-fallback muted">Không hiển thị được PDF?
+    <a th:href="@{/documents/{id}/{p}(id=${d.versionId},p=${pdfPath})}" target="_blank" rel="noopener">Mở ở tab mới</a>
+    <span th:unless="${preRelease}"> hoặc <a th:href="@{/documents/{id}/download(id=${d.versionId})}">tải về</a></span>.
+  </p>
+</section>
+<details class="detail-panel">
+  <summary>Nhãn liên kết</summary>
+  <p class="muted" th:if="${links.isEmpty()}">Chưa có.</p>
+  <span class="chip" th:each="l : ${links}" th:text="${l.linkType} + ': ' + ${l.linkCode}">link</span>
+</details>
+<details class="detail-panel">
+  <summary>Áp dụng theo site</summary>
+  <p class="muted" th:if="${receipts.isEmpty()}">Chưa phát hành tới site nào.</p>
+  <table class="data-table responsive-table site-matrix" th:unless="${receipts.isEmpty()}">
+    <thead><tr><th>Site</th><th>Trạng thái</th><th>Ngày áp dụng</th><th>Phản hồi lúc</th><th>Ghi chú</th></tr></thead>
+    <tbody>
+      <tr th:each="r : ${receipts}">
+        <td data-label="Site" th:text="${r.siteCode} + ' — ' + ${r.siteName}">site</td>
+        <td data-label="Trạng thái">
+          <span th:classappend="'status status-' + (${r.status} == 'tu_choi' ? 'thu_hoi' : (${r.status} == 'chap_nhan' ? 'hieu_luc' : 'da_ban_hanh'))"
+                th:text="${labels.receiptStatusLabel(r.status)}">trạng thái</span>
+        </td>
+        <td data-label="Ngày áp dụng" th:text="${r.applyDate} ?: ''"></td>
+        <td data-label="Phản hồi lúc" th:text="${r.respondedAt != null} ? ${#strings.substring(r.respondedAt,0,T(java.lang.Math).min(10,r.respondedAt.length()))} : ''"></td>
+        <td>
+          <th:block th:if="${r.status == 'tu_choi'}">
+            <strong th:text="${labels.receiptRejectTypeLabel(r.responseType)}">loại</strong>
+            <div class="reject-reason" th:if="${r.responseNote}" th:text="${r.responseNote}"></div>
+          </th:block>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</details>
+<details class="detail-panel">
+  <summary th:text="'Bản sao có kiểm soát đã in (' + ${printedCopies.size()} + ')'">Bản in</summary>
+  <p class="muted" th:if="${printedCopies.isEmpty()}">Chưa in bản sao có kiểm soát nào.</p>
+  <table class="data-table responsive-table" th:unless="${printedCopies.isEmpty()}">
+    <thead><tr><th>Ngày in</th><th>Người in</th><th>Vị trí</th><th>Tình trạng</th><th>Thao tác</th></tr></thead>
+    <tbody>
+      <tr th:each="pc : ${printedCopies}">
+        <td data-label="Ngày in" th:text="${pc.printedAt != null} ? ${#strings.replace(#strings.substring(pc.printedAt,0,T(java.lang.Math).min(16,pc.printedAt.length())),'T',' ')} : ''"></td>
+        <td data-label="Người in" th:text="${pc.printedByName} ?: ''"></td>
+        <td data-label="Vị trí" th:text="${pc.intendedLocation} ?: ''"></td>
+        <td data-label="Tình trạng">
+          <span th:if="${pc.recallStatus == 'da_thu_hoi'}" class="status status-thu_hoi">Đã thu hồi</span>
+          <span th:unless="${pc.recallStatus == 'da_thu_hoi'}" class="status status-hieu_luc">Đang lưu hành</span>
+        </td>
+        <td data-label="Thao tác">
+          <form th:if="${pc.recallStatus != 'da_thu_hoi'}" method="post" th:action="@{/documents/{id}/print/recall(id=${d.versionId})}"
+                style="display:inline" onsubmit="return confirm('Thu hồi bản in này?')">
+            <input type="hidden" name="print_id" th:value="${pc.printId}">
+            <button type="submit" class="btn-diff">Thu hồi</button>
+          </form>
+        </td>
+      </tr>
+    </tbody>
+  </table>
+</details>
+<details class="detail-panel">
+  <summary>Lịch sử &amp; ghi vết</summary>
+  <p class="muted"><a th:href="@{/audit(object_id=${d.versionId})}">Xem ghi vết đầy đủ của phiên bản này</a>.</p>
+</details>
+</div>
+</body>
+</html>

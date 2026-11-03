@@ -43,6 +43,112 @@ public class ReceiptService {
     public record SiteOption(String siteId, String siteCode, String name) {
     }
 
+    /** Một dòng receipt theo site (ma trận phản hồi). Port ReceiptRow. */
+    public record ReceiptRow(String receiptId, String versionId, String siteId, String siteCode,
+            String siteName, String targetDeptId, String applyDate, String status, String responseType,
+            String responseNote, String respondedBy, String respondedAt, String siteEffectiveDate,
+            String effectiveDate) {
+    }
+
+    /** Receipt kèm thông tin phiên bản + cảnh báo site khác từ chối. Port PendingReceiptRow. */
+    public record PendingReceiptRow(String receiptId, String versionId, String siteId, String siteCode,
+            String siteName, String targetDeptId, String applyDate, String status, String responseType,
+            String responseNote, String respondedBy, String respondedAt, String siteEffectiveDate,
+            String effectiveDate, String docId, String versionNo, String title, String registrantUserId,
+            String otherRejectType) {
+    }
+
+    /** Tài liệu đã thu hồi có liên quan tới site (nhắc DC Site). Port RecalledDocRow. */
+    public record RecalledDocRow(String versionId, String docId, String versionNo, String title,
+            String recallReason, String recalledAt) {
+    }
+
+    private static final String RECEIPT_ROW_COLS =
+            "r.receipt_id, r.version_id, r.site_id, s.site_code, s.name AS site_name, "
+            + "r.target_dept_id, r.apply_date::text AS apply_date, r.status, r.response_type, "
+            + "r.response_note, r.responded_by, r.responded_at::text AS responded_at, "
+            + "coalesce(r.site_effective_date, v.effective_date)::text AS site_effective_date, "
+            + "v.effective_date::text AS effective_date";
+
+    private static ReceiptRow mapReceiptRow(java.sql.ResultSet rs, int i) throws java.sql.SQLException {
+        return new ReceiptRow(rs.getString("receipt_id"), rs.getString("version_id"), rs.getString("site_id"),
+                rs.getString("site_code"), rs.getString("site_name"), rs.getString("target_dept_id"),
+                rs.getString("apply_date"), rs.getString("status"), rs.getString("response_type"),
+                rs.getString("response_note"), rs.getString("responded_by"), rs.getString("responded_at"),
+                rs.getString("site_effective_date"), rs.getString("effective_date"));
+    }
+
+    private static PendingReceiptRow mapPendingRow(java.sql.ResultSet rs, int i) throws java.sql.SQLException {
+        return new PendingReceiptRow(rs.getString("receipt_id"), rs.getString("version_id"),
+                rs.getString("site_id"), rs.getString("site_code"), rs.getString("site_name"),
+                rs.getString("target_dept_id"), rs.getString("apply_date"), rs.getString("status"),
+                rs.getString("response_type"), rs.getString("response_note"), rs.getString("responded_by"),
+                rs.getString("responded_at"), rs.getString("site_effective_date"),
+                rs.getString("effective_date"), rs.getString("doc_id"), rs.getString("version_no"),
+                rs.getString("title"), rs.getString("registrant_user_id"), rs.getString("other_reject_type"));
+    }
+
+    /** Liệt kê receipt của một version (ma trận phản hồi theo site). */
+    public List<ReceiptRow> listReceiptsForVersion(String versionId) {
+        return jdbc.query(
+                "SELECT " + RECEIPT_ROW_COLS + " FROM document_receipt r "
+                + "JOIN org_site s ON s.site_id = r.site_id "
+                + "JOIN document_versions v ON v.version_id = r.version_id "
+                + "WHERE r.version_id = :v ORDER BY s.site_code",
+                new MapSqlParameterSource("v", versionId), ReceiptService::mapReceiptRow);
+    }
+
+    /** Hàng chờ phản hồi của một DC Site (cho_phan_hoi, loại thu_hoi/het_hieu_luc). */
+    public List<PendingReceiptRow> pendingReceiptsForSites(List<String> siteIds) {
+        if (siteIds == null || siteIds.isEmpty()) {
+            return List.of();
+        }
+        return jdbc.query(
+                "SELECT " + RECEIPT_ROW_COLS + ", v.doc_id, v.version_no, v.title, v.registrant_user_id, "
+                + "(SELECT r2.response_type FROM document_receipt r2 "
+                + "  WHERE r2.version_id = r.version_id AND r2.status = 'tu_choi' "
+                + "  ORDER BY CASE r2.response_type WHEN 'sai_noi_dung' THEN 0 ELSE 1 END LIMIT 1) AS other_reject_type "
+                + "FROM document_receipt r "
+                + "JOIN org_site s ON s.site_id = r.site_id "
+                + "JOIN document_versions v ON v.version_id = r.version_id "
+                + "WHERE r.status = 'cho_phan_hoi' AND v.status NOT IN ('thu_hoi', 'het_hieu_luc') "
+                + "AND r.site_id = ANY(CAST(:ids AS uuid[])) "
+                + "ORDER BY v.submitted_at DESC NULLS LAST, s.site_code",
+                new MapSqlParameterSource("ids", toUuidArrayLiteral(siteIds)), ReceiptService::mapPendingRow);
+    }
+
+    /** Tài liệu ĐÃ THU HỒI có receipt tới các site người dùng phụ trách (nhắc, chỉ đọc). */
+    public List<RecalledDocRow> recalledDocsForSites(List<String> siteIds) {
+        if (siteIds == null || siteIds.isEmpty()) {
+            return List.of();
+        }
+        return jdbc.query(
+                "SELECT DISTINCT v.version_id, v.doc_id, v.version_no, v.title, "
+                + "v.recall_reason, v.updated_at::text AS recalled_at "
+                + "FROM document_versions v JOIN document_receipt r ON r.version_id = v.version_id "
+                + "WHERE v.status = 'thu_hoi' AND r.site_id = ANY(CAST(:ids AS uuid[])) "
+                + "ORDER BY recalled_at DESC",
+                new MapSqlParameterSource("ids", toUuidArrayLiteral(siteIds)),
+                (rs, i) -> new RecalledDocRow(rs.getString("version_id"), rs.getString("doc_id"),
+                        rs.getString("version_no"), rs.getString("title"), rs.getString("recall_reason"),
+                        rs.getString("recalled_at")));
+    }
+
+    /** Nạp một receipt để hiển thị màn phản hồi (kèm thông tin phiên bản). */
+    public PendingReceiptRow loadReceiptForView(String receiptId) {
+        List<PendingReceiptRow> rows = jdbc.query(
+                "SELECT " + RECEIPT_ROW_COLS + ", v.doc_id, v.version_no, v.title, v.registrant_user_id, "
+                + "(SELECT r2.response_type FROM document_receipt r2 "
+                + "  WHERE r2.version_id = r.version_id AND r2.status = 'tu_choi' AND r2.receipt_id <> r.receipt_id "
+                + "  ORDER BY CASE r2.response_type WHEN 'sai_noi_dung' THEN 0 ELSE 1 END LIMIT 1) AS other_reject_type "
+                + "FROM document_receipt r "
+                + "JOIN org_site s ON s.site_id = r.site_id "
+                + "JOIN document_versions v ON v.version_id = r.version_id "
+                + "WHERE r.receipt_id = :id",
+                new MapSqlParameterSource("id", receiptId), ReceiptService::mapPendingRow);
+        return rows.isEmpty() ? null : rows.get(0);
+    }
+
     /**
      * Chuẩn hoá danh sách site_id gửi từ form (thuần): loại rỗng/khoảng trắng +
      * trùng lặp, giữ thứ tự xuất hiện (port normalizeSiteIds).

@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Quản trị tổ chức — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="warn-banner">
+  DCS sở hữu cây tổ chức. Site có thể phục vụ nhiều BU; hãy duy trì quan hệ này khi tổ chức thay đổi.
+</div>
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Quản trị tổ chức</h1>
+    <p class="page-header__desc">Cây tổ chức: khối (BU), nhà máy/site, bộ phận. DCS là nguồn sở hữu.</p>
+  </div>
+</div>
+<div class="login-error" th:if="${error}" th:text="${error}">Lỗi</div>
+<section class="org-grid">
+  <div class="org-col">
+    <h2>Ngành hàng (BU)</h2>
+    <form method="post" th:action="@{/admin/org/bu}" class="admin-form">
+      <label>Mã BU <input name="code" placeholder="VD: CPI" required></label>
+      <label>Tên <input name="name" placeholder="Tên ngành hàng" required></label>
+      <button type="submit" class="btn-action btn-action--primary">Thêm BU</button>
+    </form>
+    <p class="org-col__count" th:text="'Hiện có (' + ${bus.size()} + ')'">Hiện có</p>
+    <ul><li th:each="b : ${bus}"><b th:text="${b.buCode}">mã</b> — <span th:text="${b.name}">tên</span></li></ul>
+  </div>
+  <div class="org-col">
+    <h2>Nhà máy (Site)</h2>
+    <form method="post" th:action="@{/admin/org/site}" class="admin-form">
+      <label>Mã Site <input name="code" placeholder="VD: MML" required></label>
+      <label>Tên <input name="name" placeholder="Tên nhà máy" required></label>
+      <label>Thuộc BU
+        <select name="bu_id" required>
+          <option value="">-- chọn BU --</option>
+          <option th:each="b : ${bus}" th:value="${b.buId}" th:text="${b.buCode} + ' — ' + ${b.name}">bu</option>
+        </select>
+      </label>
+      <button type="submit" class="btn-action btn-action--primary">Thêm Site</button>
+    </form>
+    <form method="post" th:action="@{/admin/org/site-bu}" class="admin-form org-col__subform">
+      <label>Gán thêm BU cho Site
+        <select name="site_id" required>
+          <option value="">-- chọn Site --</option>
+          <option th:each="s : ${sites}" th:value="${s.siteId}" th:text="${s.siteCode} + ' — ' + ${s.name}">site</option>
+        </select>
+      </label>
+      <label>BU
+        <select name="bu_id" required>
+          <option value="">-- chọn BU --</option>
+          <option th:each="b : ${bus}" th:value="${b.buId}" th:text="${b.buCode} + ' — ' + ${b.name}">bu</option>
+        </select>
+      </label>
+      <button type="submit" class="btn-action btn-action--info">Gán BU cho Site</button>
+    </form>
+    <p class="org-col__count" th:text="'Hiện có (' + ${sites.size()} + ')'">Hiện có</p>
+    <ul><li th:each="s : ${sites}"><b th:text="${s.siteCode}">mã</b> — <span th:text="${s.name}">tên</span></li></ul>
+  </div>
+  <div class="org-col">
+    <h2>Phòng ban (Department)</h2>
+    <form method="post" th:action="@{/admin/org/dept}" class="admin-form">
+      <label>Mã Dept <input name="code" placeholder="VD: QA" required></label>
+      <label>Tên <input name="name" placeholder="Tên phòng ban" required></label>
+      <label>Thuộc Site
+        <select name="site_id" required>
+          <option value="">-- chọn Site --</option>
+          <option th:each="s : ${sites}" th:value="${s.siteId}" th:text="${s.siteCode} + ' — ' + ${s.name}">site</option>
+        </select>
+      </label>
+      <button type="submit" class="btn-action btn-action--primary">Thêm Dept</button>
+    </form>
+    <p class="org-col__count" th:text="'Hiện có (' + ${depts.size()} + ')'">Hiện có</p>
+    <ul><li th:each="d : ${depts}"><b th:text="${d.deptCode}">mã</b> — <span th:text="${d.name}">tên</span></li></ul>
+  </div>
+</section>
+</div>
+</body>
+</html>

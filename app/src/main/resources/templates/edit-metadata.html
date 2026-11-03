@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Sửa thông tin đăng ký — DCS</title></head>
+<body>
+<div layout:fragment="content" th:with="v=${v}">
+<h1 th:text="'Sửa thông tin đăng ký: ' + ${v['doc_id']} + ' v' + ${v['version_no']}">Sửa thông tin đăng ký</h1>
+<div class="login-error" th:if="${error}" th:text="${error}">Lỗi</div>
+<div class="alert-banner alert-banner--warning" th:if="${locked}"><strong>Đã khóa:</strong> Đã có site chấp nhận/áp dụng tài liệu này. Không sửa trực tiếp được — nếu sai nội dung, hãy thu hồi và ban hành phiên bản mới.</div>
+<th:block th:unless="${locked}">
+<div class="alert-banner alert-banner--info"><strong>Sửa tại chỗ:</strong> Chỉ cho sai thông tin đăng ký (nội dung vẫn đúng). Số hiệu và tệp nội dung không đổi ở đây.</div>
+<form method="post" th:action="@{/my-documents/{id}/edit-metadata(id=${v['version_id']})}" class="reg-form">
+  <fieldset>
+    <legend>Thông tin đăng ký</legend>
+    <label>Số hiệu (không sửa được)<input th:value="${v['doc_id']}" disabled></label>
+    <label>Phiên bản (không sửa được)<input th:value="${v['version_no']}" disabled></label>
+    <label>Tiêu đề <input name="title" th:value="${v['title']} ?: ''"></label>
+    <label>Ngày ban hành <input type="date" name="issued_date" th:value="${v['issued_date']} ?: ''"></label>
+    <label>Ngày có hiệu lực <input type="date" name="effective_date" th:value="${v['effective_date']} ?: ''"></label>
+    <label>Chu kỳ rà soát (tháng) <input type="number" name="review_cycle_months" min="1" th:value="${v['review_cycle_months']} ?: ''"></label>
+    <label>Ngày hết hạn (tuỳ chọn) <input type="date" name="expiry_date" th:value="${v['expiry_date']} ?: ''"></label>
+    <label>Bộ phận sở hữu
+      <select name="owner_department_id">
+        <option value="">-- giữ nguyên --</option>
+        <option th:each="d : ${depts}" th:value="${d.deptId}" th:selected="${v['owner_department_id'] == d.deptId}"
+                th:text="${d.deptCode} + ' — ' + ${d.name}">dept</option>
+      </select>
+    </label>
+  </fieldset>
+  <button type="submit" class="primary">Lưu &amp; cập nhật</button>
+</form>
+</th:block>
+<p><a th:href="@{/my-documents/{id}/issuance(id=${v['version_id']})}">← Về tình trạng ban hành</a></p>
+</div>
+</body>
+</html>

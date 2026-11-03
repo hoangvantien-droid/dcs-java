@@ -1,0 +1,37 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Bản in — DCS</title></head>
+<body>
+<div layout:fragment="content" th:with="rec=${rec}">
+<h1>Đã tạo bản sao có kiểm soát</h1>
+<div class="pkg-card">
+  <p><b th:text="${rec.docId}">doc</b> <span th:text="'phiên bản ' + ${rec.versionNo}"></span></p>
+  <p>Mã bản in: <code th:text="${rec.printId}"></code></p>
+  <p>Thời điểm: <span th:text="${rec.printedAt}"></span></p>
+  <p>Mã tra cứu QR (đường dẫn đầy đủ): <code th:text="${rec.verifyUrl}"></code></p>
+  <p class="muted">
+    Lớp phủ đóng dấu (số hiệu, phiên bản, mã bản in, ngày in, QR, cảnh báo giá trị tại thời điểm in)
+    được đóng khi kết xuất — tệp gốc không đổi. Quét QR ra trang tra cứu không cần đăng nhập, chỉ hiện
+    tình trạng còn dùng được hay không.
+  </p>
+</div>
+<div class="print-overlay">
+  <div class="print-overlay__qr">
+    <p class="muted">QR tra cứu</p>
+    <div th:utext="${rec.qrSvg}"></div>
+    <code th:text="${rec.verifyUrl}"></code>
+  </div>
+  <div class="print-overlay__meta">
+    <p>Số hiệu: <b th:text="${rec.docId}">doc</b></p>
+    <p>Phiên bản: <span th:text="${rec.versionNo}"></span></p>
+    <p>Mã bản in: <code th:text="${rec.printId}"></code></p>
+    <p>Ngày in: <span th:text="${rec.printedAt}"></span></p>
+    <p>Đường dẫn tra cứu: <code th:text="${rec.verifyUrl}"></code></p>
+  </div>
+  <p class="print-overlay__warn">Bản in chỉ có giá trị tại thời điểm in — quét QR để kiểm tra</p>
+</div>
+</div>
+</body>
+</html>

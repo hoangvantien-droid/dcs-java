@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Vai trò — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="warn-banner">
+  Mô hình 4 vai: Admin (quản trị + master data) · Biên soạn (đăng ký) · Kiểm soát tài liệu site (nhận &amp; phản hồi theo site) · Người đọc. Admin đứng ngoài luồng tài liệu.
+</div>
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Vai trò</h1>
+    <p class="page-header__desc">Gán vai cho người dùng: Admin · Biên soạn · Kiểm soát tài liệu site · Người đọc.</p>
+  </div>
+</div>
+<div class="login-error" th:if="${error}" th:text="${error}">Lỗi</div>
+<div class="admin-layout">
+  <aside class="admin-panel">
+    <h2 class="admin-panel__title">Gán vai trò</h2>
+    <form method="post" th:action="@{/admin/roles}" class="admin-form">
+      <label>Tìm người dùng (tên hoặc email)
+        <input type="search" id="user_filter" placeholder="Gõ để lọc…" autocomplete="off">
+      </label>
+      <label>Người dùng
+        <select name="user_id" id="user_select" required size="6">
+          <option th:each="u : ${users}" th:value="${u.userId}"
+                  th:attr="data-search=${#strings.toLowerCase((u.fullName ?: '') + ' ' + (u.email ?: ''))}"
+                  th:text="(${u.fullName} ?: '(chưa có tên)') + ' — ' + (${u.email} ?: '(chưa có email)')">user</option>
+        </select>
+      </label>
+      <label>Vai trò
+        <select name="role_code" id="role_code" required>
+          <option value="DC_ADMIN">Admin — Quản trị hệ thống</option>
+          <option value="DC_AUTHOR">Biên soạn — Đăng ký tài liệu</option>
+          <option value="DC_SITE_DOC_CONTROL">Kiểm soát tài liệu site — Nhận &amp; phản hồi</option>
+          <option value="DC_READER">Người đọc</option>
+        </select>
+      </label>
+      <input type="hidden" name="scope_level" id="scope_level" value="group">
+      <label id="site_field" style="display:none">Site phụ trách
+        <select name="scope_site_id" id="scope_site_id">
+          <option value="">-- chọn site --</option>
+          <option th:each="s : ${sites}" th:value="${s.siteId}" th:text="${s.siteCode} + ' — ' + ${s.name}">site</option>
+        </select>
+      </label>
+      <button type="submit" class="btn-action btn-action--primary">Gán vai trò</button>
+    </form>
+  </aside>
+  <div class="admin-data">
+    <p class="admin-data__subtitle" th:text="'Người dùng &amp; vai trò hiện có (' + ${users.size()} + ')'">Người dùng</p>
+    <table class="data-table responsive-table">
+      <thead><tr><th>Tên</th><th>Email</th><th>Vai trò hiện có</th></tr></thead>
+      <tbody>
+        <tr th:each="u : ${users}" th:with="rs=${rolesByUser.get(u.userId)}">
+          <td data-label="Tên" th:text="${u.fullName} ?: ''"></td>
+          <td data-label="Email" th:text="${u.email} ?: ''"></td>
+          <td data-label="Vai trò hiện có">
+            <span class="chip" th:each="r : ${rs}">
+              <span th:text="${labels.roleLabel(r.roleCode)}">vai</span><span th:if="${r.scopeSiteId}"> · site</span>
+            </span>
+            <span class="muted" th:if="${rs == null or rs.isEmpty()}">—</span>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</div>
+<script>
+(function(){
+  var filter = document.getElementById('user_filter');
+  var select = document.getElementById('user_select');
+  if (filter && select) {
+    var opts = Array.prototype.slice.call(select.options);
+    filter.addEventListener('input', function(){
+      var q = filter.value.trim().toLowerCase();
+      opts.forEach(function(o){
+        var hit = !q || (o.getAttribute('data-search') || '').indexOf(q) >= 0;
+        o.hidden = !hit;
+      });
+      var firstVisible = opts.filter(function(o){ return !o.hidden; })[0];
+      if (firstVisible) select.value = firstVisible.value;
+    });
+  }
+  var role = document.getElementById('role_code');
+  var level = document.getElementById('scope_level');
+  var siteField = document.getElementById('site_field');
+  var siteSel = document.getElementById('scope_site_id');
+  function sync(){
+    var isSite = role.value === 'DC_SITE_DOC_CONTROL';
+    siteField.style.display = isSite ? 'flex' : 'none';
+    level.value = isSite ? 'site' : 'group';
+    siteSel.required = isSite;
+    if(!isSite) siteSel.value = '';
+  }
+  role.addEventListener('change', sync); sync();
+})();
+</script>
+</div>
+</body>
+</html>

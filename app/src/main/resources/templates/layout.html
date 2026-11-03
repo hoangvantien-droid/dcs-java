@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title layout:title-pattern="$CONTENT_TITLE" th:text="${title} ?: 'DCS — Quản lý & Phân phối Tài liệu'">DCS</title>
+  <link rel="stylesheet" th:href="@{/static/app.css(v=${assetVersion})}">
+  <script th:src="@{/static/htmx.min.js}" defer></script>
+</head>
+<body>
+  <input type="checkbox" id="nav-toggle" class="nav-toggle" aria-hidden="true">
+  <header class="topbar">
+    <div class="topbar-left">
+      <label for="nav-toggle" class="nav-hamburger" aria-label="Mở menu"><span></span><span></span><span></span></label>
+      <span class="brand-wrap">
+        <a class="brand" th:href="@{/}">DCS</a>
+        <span class="brand-sub">Document Control System</span>
+      </span>
+      <form class="search" th:action="@{/search}" method="get" role="search" autocomplete="off">
+        <input type="search" name="q" placeholder="Tìm số hiệu, tiêu đề, nội dung…" aria-label="Tìm kiếm"
+               th:attr="hx-get=@{/search/suggest}" hx-trigger="keyup changed delay:250ms" hx-target="#suggest-box" hx-swap="innerHTML">
+        <div id="suggest-box" class="suggest-box"></div>
+      </form>
+    </div>
+    <div class="topbar-right">
+      <th:block th:if="${user}">
+        <span class="avatar" aria-hidden="true"
+              th:text="${#strings.toUpperCase(#strings.substring((${user.fullName} ?: ${user.email} ?: '?'),0,1))}">?</span>
+        <span class="user-name" th:text="${user.fullName} ?: ${user.email}">User</span>
+        <a class="logout" th:href="@{/logout}">Đăng xuất</a>
+      </th:block>
+      <a class="logout" th:href="@{/login}" th:unless="${user}">Đăng nhập</a>
+    </div>
+  </header>
+
+  <div class="app-shell">
+    <label for="nav-toggle" class="nav-overlay" aria-hidden="true"></label>
+    <nav class="sidebar" aria-label="Điều hướng chính" th:with="nav=${nav != null ? nav : T(com.dqh.dcs.web.NavFlags).anonymous()}">
+      <ul>
+        <li class="sidebar-group">Không gian chung</li>
+        <li><a th:href="@{/}"><span class="nav-ic"></span><span class="nav-label">Trang chủ</span></a></li>
+        <li th:if="${nav.inDocFlow}"><a th:href="@{/documents}"><span class="nav-ic"></span><span class="nav-label">Danh mục tài liệu</span></a></li>
+        <li th:if="${nav.canSeeMyDocuments}"><a th:href="@{/my-documents}"><span class="nav-ic"></span><span class="nav-label">Tài liệu của tôi</span></a></li>
+        <th:block th:if="${nav.inDocFlow}">
+          <li class="sidebar-group">Quy trình</li>
+          <li th:if="${nav.isSiteDocControl}"><a th:href="@{/site-receipts}"><span class="nav-ic"></span><span class="nav-label">Chờ site phản hồi</span><span class="nav-badge" th:if="${nav.pendingReceipts > 0}" th:text="${nav.pendingReceipts}">0</span></a></li>
+          <li th:if="${nav.isSiteDocControl}"><a th:href="@{/issue-reports}"><span class="nav-ic"></span><span class="nav-label">Báo bất thường (site)</span></a></li>
+          <li th:if="${nav.canRegister or nav.isSiteDocControl}"><a th:href="@{/reviews}"><span class="nav-ic"></span><span class="nav-label">Xem xét định kỳ</span></a></li>
+          <li th:if="${nav.canRegister}"><a th:href="@{/packages}"><span class="nav-ic"></span><span class="nav-label">Gói ban hành</span></a></li>
+        </th:block>
+        <th:block th:if="${nav.isAdmin}">
+          <li class="sidebar-group">Quản trị</li>
+          <li><a th:href="@{/functional-groups}"><span class="nav-ic"></span><span class="nav-label">Nhóm chức năng</span></a></li>
+          <li><a th:href="@{/admin/org}"><span class="nav-ic"></span><span class="nav-label">Quản trị tổ chức</span></a></li>
+          <li><a th:href="@{/admin/users}"><span class="nav-ic"></span><span class="nav-label">Quản trị người dùng</span></a></li>
+          <li><a th:href="@{/admin/roles}"><span class="nav-ic"></span><span class="nav-label">Vai trò</span></a></li>
+          <li class="sidebar-group">Hệ thống</li>
+          <li><a th:href="@{/audit}"><span class="nav-ic"></span><span class="nav-label">Ghi vết</span></a></li>
+        </th:block>
+      </ul>
+      <p class="phase-note">Giai đoạn 1 — L1 chưa vận hành</p>
+    </nav>
+
+    <main class="content">
+      <div layout:fragment="content">Nội dung trang.</div>
+    </main>
+  </div>
+  <div id="toast-zone" class="toast-zone" aria-live="polite"></div>
+  <script>
+  document.body.addEventListener('htmx:beforeSwap', function (evt) {
+    var st = evt.detail.xhr.status;
+    if (st >= 400 && st < 500) { evt.detail.shouldSwap = true; evt.detail.isError = false; }
+  });
+  </script>
+</body>
+</html>

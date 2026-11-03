@@ -84,6 +84,17 @@ public class SearchService {
                 p, SearchService::mapHit);
     }
 
+    /** Ghi vết một lượt tìm kiếm (tim_kiem) — chạy trong giao dịch riêng. */
+    @org.springframework.transaction.annotation.Transactional
+    public void auditSearch(com.dqh.dcs.audit.AuditService audit, String userId, String q,
+            boolean includeHistorical, SearchFilters filters, int hits) {
+        audit.writeAudit(com.dqh.dcs.audit.AuditEntry
+                .of(com.dqh.dcs.audit.EventType.tim_kiem, "search", q == null ? "" : q)
+                .actorUserId(userId)
+                .context(java.util.Map.of("q", q == null ? "" : q,
+                        "includeHistorical", includeHistorical, "hits", hits)));
+    }
+
     /** Gợi ý nhanh cho ô tìm (sau 2 ký tự, tối đa 5). */
     public List<SearchHit> suggest(String userId, String q) {
         if (q == null || q.trim().length() < 2) {

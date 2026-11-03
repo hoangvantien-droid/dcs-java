@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Đăng ký tài liệu — DCS</title></head>
+<body>
+<div layout:fragment="content" th:with="val=${values} ?: ${#maps.empty()}">
+<style>.reg-form label .req { color: var(--danger, #c0392b); font-weight: 700; }</style>
+<h1 th:text="${editVersionId} != null ? 'Sửa nháp đăng ký' : 'Đăng ký tài liệu ban hành'">Đăng ký tài liệu ban hành</h1>
+<div class="login-error" th:if="${error}" th:text="${error}">Lỗi</div>
+
+<ol class="steps">
+  <li class="step step--current"><span>① Tài liệu</span></li>
+  <li class="step step--todo"><span>② Hiệu lực</span></li>
+  <li class="step step--todo"><span>③ Phân loại</span></li>
+</ol>
+
+<div class="reg-layout">
+<div class="reg-main">
+<form method="post"
+      th:action="${editVersionId} != null ? @{/my-documents/{id}/edit(id=${editVersionId})} : @{/register}"
+      class="reg-form" enctype="multipart/form-data">
+  <input type="hidden" name="edit_version_id" th:if="${editVersionId} != null" th:value="${editVersionId}">
+  <fieldset id="field-doc_id">
+    <legend>Định danh &amp; phạm vi áp dụng</legend>
+    <label>Số hiệu tài liệu <span class="req">*</span>
+      <input name="doc_id" required th:value="${val['doc_id']} ?: ''" placeholder="MML/QA/HD-005">
+    </label>
+    <label>Loại
+      <select name="doc_type">
+        <option th:each="t : ${docTypes}" th:value="${t.code}" th:text="${t.label}" th:selected="${val['doc_type'] == t.code}">SOP</option>
+      </select>
+    </label>
+    <label>Nguồn
+      <select name="origin" id="origin">
+        <option value="noi_bo" th:selected="${val['origin'] == 'noi_bo'}">Nội bộ</option>
+        <option value="ngoai_bo" th:selected="${val['origin'] == 'ngoai_bo'}">Ngoại bộ</option>
+      </select>
+    </label>
+    <label>Cấp phạm vi áp dụng
+      <select name="scope_level">
+        <option th:each="s : ${ {'group','bu','site','dept'} }" th:value="${s}" th:text="${labels.scopeLabel(s)}" th:selected="${val['scope_level'] == s}">cấp</option>
+      </select>
+    </label>
+    <label>BU (nếu cấp bu)
+      <select name="scope_bu_id"><option value="">--</option>
+        <option th:each="x : ${bus}" th:value="${x.buId}" th:text="${x.buCode}">bu</option>
+      </select>
+    </label>
+    <label>Site (nếu cấp site)
+      <select name="scope_site_id"><option value="">--</option>
+        <option th:each="x : ${sites}" th:value="${x.siteId}" th:text="${x.siteCode}">site</option>
+      </select>
+    </label>
+    <label>Department (nếu cấp dept)
+      <select name="scope_dept_id"><option value="">--</option>
+        <option th:each="x : ${depts}" th:value="${x.deptId}" th:text="${x.deptCode}">dept</option>
+      </select>
+    </label>
+    <label id="field-file">Tệp PDF của tài liệu <span class="req">*</span>
+      <input type="file" name="file" accept="application/pdf">
+    </label>
+  </fieldset>
+
+  <fieldset id="field-sites">
+    <legend>Site nhận tài liệu (ban hành thẳng) <span class="req">*</span></legend>
+    <p class="muted" style="margin:.25rem 0 .5rem">Tài liệu được ban hành ngay tới các site chọn dưới đây. Mỗi site tự xác nhận nhận hoặc từ chối.</p>
+    <div class="alert-banner alert-banner--warning register-no-site" th:if="${sites.isEmpty()}"><strong>Chưa có site nào:</strong> Hệ thống chưa khai báo site nhận. Liên hệ quản trị để thêm site (master data) trước khi đăng ký tài liệu.</div>
+    <div class="site-pick" style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:.4rem">
+      <label th:each="x : ${sites}" style="display:flex;align-items:center;gap:.4rem;font-weight:400">
+        <input type="checkbox" name="site_ids" th:value="${x.siteId}"
+               th:checked="${selectedSiteIds != null and selectedSiteIds.contains(x.siteId)}">
+        <span th:text="${x.siteCode} + ' — ' + ${x.name}">site</span>
+      </label>
+    </div>
+  </fieldset>
+
+  <fieldset>
+    <legend>Hiệu lực &amp; bộ phận sở hữu</legend>
+    <label>Phiên bản <span class="req">*</span> <input name="version_no" required th:value="${val['version_no']} ?: ''" placeholder="1.0"></label>
+    <label>Tiêu đề <span class="req">*</span> <input name="title" required th:value="${val['title']} ?: ''"></label>
+    <label>Ngày ban hành <span class="req">*</span> <input type="date" name="issued_date" required th:value="${val['issued_date']} ?: ''"></label>
+    <label id="field-external-eff" th:style="${val['origin'] == 'ngoai_bo'} ? 'display:block' : 'display:none'">Ngày hiệu lực pháp lý (ngoại bộ) <input type="date" name="external_effective_date" th:value="${val['external_effective_date']} ?: ''"></label>
+    <label>Ngày có hiệu lực <span class="req">*</span> <input type="date" name="effective_date" required th:value="${val['effective_date']} ?: ''"></label>
+    <label>Chu kỳ rà soát (tháng) <input type="number" name="review_cycle_months" th:value="${val['review_cycle_months']} ?: '12'" min="1"></label>
+    <label>Ngày hết hạn (tuỳ chọn) <input type="date" name="expiry_date" th:value="${val['expiry_date']} ?: ''"></label>
+    <label>Bộ phận sở hữu <span class="req">*</span>
+      <select name="owner_department_id" required
+              th:attr="hx-get=@{/register/recipient-count}" hx-trigger="change"
+              hx-target="#recip-count" hx-swap="innerHTML" hx-params="owner_department_id">
+        <option value="">--</option>
+        <option th:each="x : ${depts}" th:value="${x.deptId}" th:text="${x.deptCode}">dept</option>
+      </select>
+    </label>
+    <div id="recip-count" class="recip-count muted"></div>
+  </fieldset>
+
+  <fieldset id="field-change_significance">
+    <legend>Phiên bản mới (nếu thay thế bản cũ)</legend>
+    <label>Thao tác <span class="req">*</span>
+      <select name="reg_mode" id="reg_mode">
+        <option value="new">Tạo mới</option>
+        <option value="update">Update bản cũ</option>
+      </select>
+    </label>
+    <div id="update_block" style="display:none">
+      <label>Chọn bản cũ đang hiệu lực / đã đăng ký <span class="req">*</span>
+        <select name="supersedes_version_id" id="supersedes_version_id">
+          <option value="">-- chọn bản cũ --</option>
+          <th:block th:utext="${supersedeOptions}"></th:block>
+        </select>
+      </label>
+      <label>Mức độ thay đổi <span class="req">*</span>
+        <select name="change_significance" id="change_significance"><option value="">--</option>
+          <option value="lon">Lớn</option><option value="nho">Nhỏ</option>
+        </select>
+      </label>
+    </div>
+    <div class="alert-banner alert-banner--warning"><strong>Cảnh báo:</strong> Thay đổi nhỏ nghĩa là cả xưởng KHÔNG phải xác nhận đọc lại.</div>
+    <label>Tóm tắt thay đổi (bắt buộc nếu lớn) <span class="req">*</span> <input name="change_summary" id="change_summary" th:value="${val['change_summary']} ?: ''"></label>
+    <div id="change_summary_error" class="field__hint field__hint--error" style="display:none">Thay đổi lớn bắt buộc nhập tóm tắt lý do.</div>
+  </fieldset>
+
+  <button type="submit" class="primary">Ban hành tài liệu</button>
+  <button type="submit" class="btn-diff" th:formaction="@{/register/draft}">Lưu nháp</button>
+</form>
+<script>
+(function(){
+  var form = document.querySelector('form.reg-form');
+  var sel = document.getElementById('change_significance');
+  var sum = document.getElementById('change_summary');
+  var err = document.getElementById('change_summary_error');
+  var mode = document.getElementById('reg_mode');
+  var upd = document.getElementById('update_block');
+  var sup = document.getElementById('supersedes_version_id');
+  var origin = document.getElementById('origin');
+  var extEff = document.getElementById('field-external-eff');
+  function toggleExtEff(){ if(origin && extEff){ extEff.style.display = origin.value === 'ngoai_bo' ? 'block' : 'none'; } }
+  if(origin){ origin.addEventListener('change', toggleExtEff); toggleExtEff(); }
+  if(!form) return;
+  function check(){
+    if(!sel||!sum||!err) return true;
+    var bad = sel.value === 'lon' && !sum.value.trim();
+    err.style.display = bad ? 'block' : 'none';
+    sum.style.borderColor = bad ? 'var(--danger, #c0392b)' : '';
+    return !bad;
+  }
+  if(sel) sel.addEventListener('change', check);
+  if(sum) sum.addEventListener('input', check);
+  if(mode&&upd) mode.addEventListener('change', function(){ upd.style.display = mode.value === 'update' ? 'block' : 'none'; });
+  form.addEventListener('submit', function(e){
+    if(mode && mode.value === 'update' && sup && !sup.value){
+      e.preventDefault(); sup.focus();
+      if(err){ err.textContent = 'Update bản cũ: phải chọn bản cũ đang hiệu lực / đã đăng ký.'; err.style.display='block'; }
+      return;
+    }
+    if(!check()){ e.preventDefault(); if(sum) sum.focus(); }
+  });
+})();
+</script>
+</div>
+<aside class="reg-checklist">
+  <h2 class="reg-checklist__title">Cần hoàn tất</h2>
+  <ul class="check-list">
+    <a href="#field-doc_id" class="reg-checklist__link"><li class="check-item"><span class="check-mark warn">!</span><span class="check-label">Đủ trường bắt buộc</span></li></a>
+    <a href="#field-file" class="reg-checklist__link"><li class="check-item"><span class="check-mark warn">!</span><span class="check-label">Đã chọn tệp PDF</span></li></a>
+    <a href="#field-change_significance" class="reg-checklist__link"><li class="check-item"><span class="check-mark warn">!</span><span class="check-label">Khai mức độ thay đổi nếu thay thế</span></li></a>
+  </ul>
+</aside>
+</div>
+</div>
+</body>
+</html>

@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>So sánh phiên bản — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<h1>So sánh phiên bản</h1>
+<div class="warn-banner">
+  So sánh cho biết <b>cái gì</b> đã đổi, không cho biết đổi đó <b>lớn hay nhỏ</b>.
+  Sửa một lỗi chính tả và đổi một ngưỡng nhiệt độ đều hiện ra là "nội dung mục đã đổi".
+  Việc phán xét mức độ vẫn là của bạn.
+</div>
+<div class="danger-banner" th:if="${reliability != 'dang_tin'}">
+  <span th:if="${reliability == 'la_phien_ban_dau_tien'}">Đây là phiên bản đầu tiên — không có bản trước để so sánh.</span>
+  <span th:if="${reliability == 'khong_co_muc_de_so'}">Tài liệu không có mục để so sánh (ví dụ biểu mẫu). Đối chiếu thủ công.</span>
+  <span th:if="${reliability != 'la_phien_ban_dau_tien' and reliability != 'khong_co_muc_de_so'}">Bóc tách kém tin cậy ở một trong hai bản — kết quả so sánh KHÔNG đáng tin. Đề nghị mở tệp gốc để đối chiếu.</span>
+</div>
+<div class="compare-grid" th:if="${reliability == 'dang_tin'}">
+  <div class="compare-head">Bản cũ</div>
+  <div class="compare-head">Bản mới</div>
+  <th:block th:each="r : ${rows}">
+    <th:block th:if="${r.changeType == 'them'}">
+      <div class="compare-cell empty"></div>
+      <div class="compare-cell added"><b th:text="${r.sectionCode} + ' ' + ${r.newTitle}"></b><p th:text="${r.newText} ?: ''"></p></div>
+    </th:block>
+    <th:block th:if="${r.changeType == 'xoa'}">
+      <div class="compare-cell removed"><b th:text="${r.sectionCode} + ' ' + ${r.oldTitle}"></b><p th:text="${r.oldText} ?: ''"></p></div>
+      <div class="compare-cell empty"></div>
+    </th:block>
+    <th:block th:if="${r.changeType == 'doi_tieu_de'}">
+      <div class="compare-cell changed"><b th:text="${r.sectionCode} + ' ' + ${r.oldTitle}"></b></div>
+      <div class="compare-cell changed"><b th:text="${r.sectionCode} + ' ' + ${r.newTitle}"></b> <span class="tag">đổi tiêu đề</span></div>
+    </th:block>
+    <th:block th:if="${r.changeType != 'them' and r.changeType != 'xoa' and r.changeType != 'doi_tieu_de'}">
+      <div class="compare-cell changed"><b th:text="${r.sectionCode} + ' ' + ${r.oldTitle}"></b><p th:text="${r.oldText} ?: ''"></p></div>
+      <div class="compare-cell changed"><b th:text="${r.sectionCode} + ' ' + ${r.newTitle}"></b><p th:text="${r.newText} ?: ''"></p></div>
+    </th:block>
+  </th:block>
+  <div class="compare-cell" style="grid-column: 1 / -1" th:if="${rows.isEmpty()}">Không có mục nào khác biệt.</div>
+</div>
+</div>
+</body>
+</html>

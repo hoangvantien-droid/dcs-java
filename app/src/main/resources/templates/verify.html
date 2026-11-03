@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Tra cứu bản sao có kiểm soát — DCS</title>
+  <link rel="stylesheet" th:href="@{/static/app.css(v=${assetVersion})}">
+</head>
+<body class="verify-page" th:with="r=${result}">
+  <main class="verify-card verify-unknown" th:if="${!r.found}">
+    <div class="verify-big">?</div>
+    <p>Không tìm thấy bản in này.</p>
+  </main>
+  <main class="verify-card verify-ok" th:if="${r.found and r.status == 'con_hieu_luc'}">
+    <div class="verify-big">✓</div>
+    <p>Bản này CÒN HIỆU LỰC.</p>
+    <p class="verify-sub" th:if="${r.siteCode}">
+      <span th:text="'Site ' + ${r.siteCode}">Site</span>
+      <span th:if="${r.receiptStatus == 'chap_nhan'}"> — đã xác nhận tiếp nhận<span th:if="${r.applyDate}" th:text="' từ ' + ${r.applyDate}"></span></span>
+    </p>
+  </main>
+  <main class="verify-card verify-bad" th:if="${r.found and r.status == 'chua_tiep_nhan'}">
+    <div class="verify-big">…</div>
+    <p th:text="'Site ' + (${r.siteCode} ?: '') + ' CHƯA XÁC NHẬN TIẾP NHẬN bản này.'">Chưa xác nhận tiếp nhận.</p>
+  </main>
+  <main class="verify-card verify-bad" th:if="${r.found and r.status == 'tu_choi_tiep_nhan'}">
+    <div class="verify-big">‖</div>
+    <p>
+      <span th:text="'Site ' + (${r.siteCode} ?: '') + ' ĐÃ TỪ CHỐI TIẾP NHẬN'">Đã từ chối tiếp nhận</span>
+      <span th:if="${r.rejectType == 'sai_noi_dung'}"> (báo sai nội dung)</span>
+      <span th:if="${r.rejectType == 'sai_dang_ky'}"> (báo sai thông tin đăng ký)</span>.
+    </p>
+  </main>
+  <main class="verify-card verify-bad"
+        th:if="${r.found and r.status != 'con_hieu_luc' and r.status != 'chua_tiep_nhan' and r.status != 'tu_choi_tiep_nhan'}">
+    <div class="verify-big">✕</div>
+    <p th:if="${r.status == 'het_hieu_luc'}">
+      Bản này ĐÃ LỖI THỜI<span th:if="${r.currentVersionNo}" th:text="' — bản hiện hành là phiên bản ' + ${r.currentVersionNo}"></span>.
+    </p>
+    <p th:if="${r.status == 'thu_hoi'}">Tài liệu này ĐÃ THU HỒI.</p>
+    <p th:if="${r.status == 'ban_in_thu_hoi'}">Bản in này ĐÃ ĐƯỢC THU HỒI.</p>
+    <p th:if="${r.status == 'khong_ro'}">Không xác định được tình trạng — hỏi người kiểm soát tài liệu.</p>
+  </main>
+  <footer class="verify-foot" th:if="${r.found and r.docId}">
+    <span th:text="${r.docId} + (${r.versionNo} != null ? ' · phiên bản ' + ${r.versionNo} : '')">doc</span>
+  </footer>
+</body>
+</html>

@@ -1,0 +1,68 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Phản hồi tài liệu — DCS</title></head>
+<body>
+<div layout:fragment="content"
+     th:with="recalled=${detail != null and detail.status == 'thu_hoi'},
+              siteEff=${r.siteEffectiveDate != null ? r.siteEffectiveDate : (detail != null ? detail.effectiveDate : null)}">
+<div th:with="beforeEffective=${siteEff != null and #strings.substring(siteEff,0,T(java.lang.Math).min(10,siteEff.length())) > today}">
+<div class="detail-header">
+  <h1 th:text="'Phản hồi tài liệu cho site ' + ${r.siteCode}">Phản hồi</h1>
+  <p class="doc-title" th:text="${r.docId} + ' · phiên bản ' + ${r.versionNo} + ' · ' + ${r.title}">doc</p>
+</div>
+<div class="login-error" th:if="${error}" th:text="${error}">Lỗi</div>
+<div class="alert-banner alert-banner--warning" th:if="${selfRegistered}"><strong>Cảnh báo tách vai:</strong> Bạn là người đăng ký tài liệu này. Việc tự phản hồi được ghi vết đậm trong nhật ký. Cân nhắc để người khác trong site phản hồi.</div>
+<div class="alert-banner alert-banner--warning" th:if="${r.otherRejectType == 'sai_noi_dung'}"><strong>Có site báo sai nội dung:</strong> Một site khác đã từ chối phiên bản này vì nghi nội dung sai. Kiểm tra kỹ trước khi chấp nhận.</div>
+<div class="alert-banner alert-banner--info" th:if="${r.otherRejectType == 'sai_dang_ky'}"><strong>Có site báo sai đăng ký:</strong> Một site khác báo sai thông tin đăng ký (không phải nội dung).</div>
+<div class="confirm-layout">
+  <section class="confirm-file">
+    <p class="confirm-file__title">Nội dung tài liệu — đọc kỹ trước khi phản hồi</p>
+    <object class="confirm-file__embed" th:data="@{/documents/{id}/view(id=${r.versionId})}" type="application/pdf">
+      <div class="confirm-file__placeholder">Trình duyệt không hiển thị PDF trực tiếp. Dùng liên kết bên dưới để mở hoặc tải về.</div>
+    </object>
+    <p class="confirm-file__link">
+      <a th:href="@{/documents/{id}/view(id=${r.versionId})}" class="btn-link" target="_blank" rel="noopener">Mở PDF toàn màn hình</a>
+      · <a th:href="@{/documents/{id}/download(id=${r.versionId})}" class="btn-link">Tải PDF</a>
+    </p>
+    <details class="detail-panel" style="margin-top:14px" th:if="${sections != null and !sections.isEmpty()}">
+      <summary th:text="'Mục bóc tách (' + ${sections.size()} + ')'">Mục bóc tách</summary>
+      <ul class="check-list">
+        <li th:each="s : ${sections}" th:text="${s.sectionCode} + ' — ' + ${s.sectionTitle}">mục</li>
+      </ul>
+    </details>
+  </section>
+  <aside class="confirm-panel">
+    <dl class="detail-meta">
+      <div><dt>Số hiệu</dt><dd th:text="${r.docId}">doc</dd></div>
+      <div><dt>Phiên bản</dt><dd th:text="${r.versionNo}">1</dd></div>
+      <div><dt>Ngày hiệu lực tại site</dt><dd th:text="${siteEff} ?: ''"></dd></div>
+      <div><dt>Site nhận</dt><dd th:text="${r.siteCode} + ' — ' + ${r.siteName}">site</dd></div>
+    </dl>
+    <div class="alert-banner alert-banner--error" th:if="${recalled}"><strong>Tài liệu đã bị thu hồi:</strong> Không thể chấp nhận phiếu này. Ngừng sử dụng tài liệu.</div>
+    <div class="alert-banner alert-banner--info" th:if="${!recalled and beforeEffective}"><strong th:text="'Chưa tới ngày hiệu lực (' + ${siteEff} + '):'">Chưa tới ngày hiệu lực:</strong> Chỉ có thể chấp nhận từ ngày hiệu lực trở đi.</div>
+    <form th:if="${!recalled and !beforeEffective}" method="post" th:action="@{/site-receipts/{id}/accept(id=${r.receiptId})}"
+          th:attr="hx-post=@{/site-receipts/{id}/accept(id=${r.receiptId})}" hx-target="#toast-zone" hx-swap="beforeend">
+      <button type="submit" class="primary">Xác nhận tiếp nhận</button>
+    </form>
+    <form method="post" th:action="@{/site-receipts/{id}/reject(id=${r.receiptId})}" class="reject-form"
+          th:attr="hx-post=@{/site-receipts/{id}/reject(id=${r.receiptId})}" hx-target="#toast-zone" hx-swap="beforeend">
+      <h2>Từ chối — báo sai sót</h2>
+      <label>Loại sai sót
+        <select name="reject_type" required>
+          <option value="sai_dang_ky">Sai thông tin đăng ký (ngày, số hiệu… — chỉ cần sửa, cập nhật)</option>
+          <option value="sai_noi_dung">Sai nội dung tài liệu (cần thu hồi, ban hành lại)</option>
+        </select>
+      </label>
+      <label>Mô tả sai sót <span class="req">*</span>
+        <textarea name="note" rows="3" required placeholder="Nêu rõ sai sót để người đăng ký khắc phục"></textarea>
+      </label>
+      <button type="submit" class="btn-diff">Từ chối tiếp nhận</button>
+    </form>
+  </aside>
+</div>
+</div>
+</div>
+</body>
+</html>

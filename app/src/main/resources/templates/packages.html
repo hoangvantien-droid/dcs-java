@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Gói ban hành — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Gói ban hành</h1>
+    <p class="page-header__desc">Gom nhiều tài liệu vào một gói để ban hành đồng loạt tới các site.</p>
+  </div>
+  <div class="toolbar">
+    <a href="#tao-goi" class="btn-action btn-action--primary">Tạo gói ban hành</a>
+  </div>
+</div>
+<div class="login-error" th:if="${error}" th:text="${error}">Lỗi</div>
+<div class="pkg-card" th:each="p : ${packages}">
+  <div class="pkg-head">
+    <b th:text="${p.packageCode}">mã</b> — <span th:text="${p.title}">title</span>
+    <span th:classappend="'status status-' + ${p.status}" th:text="${p.status}">status</span>
+    <span class="pkg-prog" th:text="${p.confirmedCount} + '/' + ${p.memberCount} + ' đã xác nhận · hiệu lực ' + ${p.effectiveDate}">tiến độ</span>
+  </div>
+  <ul class="matrix-list">
+    <li th:each="m : ${membersByPkg.get(p.packageId)}">
+      <span th:text="${m.docId} + ' v' + ${m.versionNo} + ' — ' + ${m.title}">member</span>
+      <span th:classappend="'status status-' + ${m.status}" th:text="${m.status}">status</span>
+      <form th:if="${p.status == 'dang_mo'}" method="post" th:action="@{/packages/detach}" class="inline-form" style="display:inline">
+        <input type="hidden" name="version_id" th:value="${m.versionId}">
+        <input name="reason" placeholder="lý do tháo" required>
+        <button type="submit" class="chip-x" title="Tháo">Tháo</button>
+      </form>
+    </li>
+  </ul>
+  <form th:if="${p.status == 'dang_mo'}" method="post" th:action="@{/packages/move-date}" class="inline-form">
+    <input type="hidden" name="package_id" th:value="${p.packageId}">
+    <input type="date" name="effective_date" required>
+    <button type="submit">Dời ngày (chỉ ra xa được nếu đã có thành viên xác nhận)</button>
+  </form>
+</div>
+<h2 id="tao-goi">Tạo gói ban hành</h2>
+<p class="muted">Chỉ dùng cho ban hành phối hợp quy mô nhỏ (2-5 tài liệu phụ thuộc nhau). Tối đa 10 thành viên.</p>
+<form method="post" th:action="@{/packages}" class="inline-form">
+  <input name="code" placeholder="Mã gói" required>
+  <input name="title" placeholder="Vì sao đi cùng nhau" required>
+  <input type="date" name="effective_date" required>
+  <button type="submit">Tạo gói</button>
+</form>
+<h2>Gắn đăng ký của tôi vào gói</h2>
+<form method="post" th:action="@{/packages/attach}" class="inline-form">
+  <select name="version_id" required>
+    <option value="">-- đăng ký --</option>
+    <option th:each="a : ${attachable}" th:value="${a.versionId}" th:text="${a.docId} + ' v' + ${a.versionNo}">reg</option>
+  </select>
+  <select name="package_id" required>
+    <option value="">-- gói --</option>
+    <th:block th:each="p : ${packages}">
+      <option th:if="${p.status == 'dang_mo'}" th:value="${p.packageId}" th:text="${p.packageCode}">pkg</option>
+    </th:block>
+  </select>
+  <button type="submit">Gắn vào gói</button>
+</form>
+</div>
+</body>
+</html>

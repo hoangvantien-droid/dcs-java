@@ -1,0 +1,71 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Xem xét định kỳ — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Xem xét định kỳ</h1>
+    <p class="page-header__desc">Tài liệu tới hạn xem xét. Bộ phận sở hữu kết luận; kiểm soát tài liệu site theo dõi tài liệu tới hạn ở site mình.</p>
+  </div>
+</div>
+<th:block th:if="${canRegister}">
+  <h2 th:text="'Đang xem xét (' + ${active.size()} + ')'">Đang xem xét</h2>
+  <table class="data-table responsive-table">
+    <thead><tr><th>Số hiệu tài liệu</th><th>Tiêu đề</th><th>Hạn</th><th>Quá hạn</th><th>Kết luận</th></tr></thead>
+    <tbody>
+      <tr th:each="r : ${active}">
+        <td data-label="Số hiệu tài liệu" th:text="${r.docId} + ' v' + ${r.versionNo}">doc</td>
+        <td data-label="Tiêu đề" th:text="${r.title}">title</td>
+        <td data-label="Hạn" th:text="${r.dueDate}"></td>
+        <td data-label="Quá hạn" th:text="${r.soNgayQuaHan > 0} ? ${r.soNgayQuaHan} + ' ngày' : ''"></td>
+        <td data-label="Kết luận">
+          <form method="post" th:action="@{/reviews/{id}/verdict(id=${r.reviewId})}" class="verdict-form">
+            <select name="verdict" required>
+              <option value="giu_nguyen">Giữ nguyên</option>
+              <option value="can_sua">Cần sửa</option>
+              <option value="huy_bo">Huỷ bỏ</option>
+            </select>
+            <input name="note" placeholder="Giải trình (bắt buộc nếu không giữ nguyên)">
+            <button type="submit">Ghi kết luận</button>
+          </form>
+        </td>
+      </tr>
+      <tr th:if="${active.isEmpty()}"><td colspan="5" data-label="">Không có tài liệu đang xem xét.</td></tr>
+    </tbody>
+  </table>
+  <h2 th:text="'Treo chờ bản mới (' + ${pending.size()} + ')'">Treo chờ bản mới</h2>
+  <table class="data-table responsive-table">
+    <thead><tr><th>Số hiệu tài liệu</th><th>Tiêu đề</th><th>Kết luận</th><th>Giải trình</th></tr></thead>
+    <tbody>
+      <tr th:each="r : ${pending}">
+        <td data-label="Số hiệu tài liệu" th:text="${r.docId} + ' v' + ${r.versionNo}">doc</td>
+        <td data-label="Tiêu đề" th:text="${r.title}">title</td>
+        <td data-label="Kết luận">cần sửa</td>
+        <td data-label="Giải trình" th:text="${r.verdictNote}"></td>
+      </tr>
+      <tr th:if="${pending.isEmpty()}"><td colspan="4" data-label="">Không có tài liệu nào đang treo.</td></tr>
+    </tbody>
+  </table>
+</th:block>
+<th:block th:if="${isSiteDocControl}">
+  <h2 th:text="'Theo dõi xem xét (site bạn phụ trách) (' + ${siteReminders.size()} + ')'">Theo dõi xem xét</h2>
+  <p class="muted">Tài liệu đã phát hành tới site bạn phụ trách và tới hạn xem xét. Chỉ theo dõi; kết luận do bộ phận sở hữu thực hiện.</p>
+  <table class="data-table responsive-table">
+    <thead><tr><th>Số hiệu tài liệu</th><th>Tiêu đề</th><th>Hạn</th><th>Quá hạn</th></tr></thead>
+    <tbody>
+      <tr th:each="r : ${siteReminders}">
+        <td data-label="Số hiệu tài liệu" th:text="${r.docId} + ' v' + ${r.versionNo}">doc</td>
+        <td data-label="Tiêu đề" th:text="${r.title}">title</td>
+        <td data-label="Hạn" th:text="${r.dueDate}"></td>
+        <td data-label="Quá hạn" th:text="${r.soNgayQuaHan > 0} ? ${r.soNgayQuaHan} + ' ngày' : ''"></td>
+      </tr>
+      <tr th:if="${siteReminders.isEmpty()}"><td colspan="4" data-label="">Không có tài liệu nào tới hạn xem xét ở site bạn phụ trách.</td></tr>
+    </tbody>
+  </table>
+</th:block>
+</div>
+</body>
+</html>

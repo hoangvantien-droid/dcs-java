@@ -1,0 +1,1601 @@
+/* DCS — CSS nền. Tối giản, ưu tiên rõ ràng hơn trang trí (DCS-7 §0). */
+:root {
+  /* ================================================================
+   * Masan Corporate Blue Palette — bảng màu thương hiệu Masan.
+   * Các token --color-* / alias DCS-12 bên dưới trỏ sang các token này,
+   * nên toàn bộ view tự chuyển sang tông xanh Masan mà KHÔNG đổi markup.
+   * ================================================================ */
+  --masan-950: #001F3F;  /* Navy sâu nhất — chân sidebar */
+  --masan-900: #002B54;  /* Nền sidebar / chữ tiêu đề */
+  --masan-800: #003B73;  /* Hover sidebar / chữ đầu bảng */
+  --masan-700: #004B8D;  /* MÀU THƯƠNG HIỆU CHÍNH (nút, trạng thái active) */
+  --masan-600: #0062B8;  /* Hover primary / liên kết & icon tương tác */
+  --masan-500: #0077E6;  /* Vòng focus / chỉ báo active */
+  --masan-100: #DCEBFA;  /* Màu viền chuẩn (thẻ, ô nhập, bảng) */
+  --masan-50:  #EBF4FC;  /* Mặt xanh nhạt (nhãn bộ phận, banner info, nền TH) */
+  --masan-25:  #F4F8FC;  /* Nền ứng dụng chính / hover dòng bảng */
+
+  --masan-sky:            #38BDF8;  /* vạch chỉ báo active bên trái sidebar */
+  --masan-text-main:      #0F172A;  /* chữ chính */
+  --masan-text-secondary: #475569;  /* chữ phụ */
+  --masan-text-muted:     #94A3B8;  /* chữ mờ */
+  --masan-light-text:     #CBD5E1;  /* chữ trên nền sidebar navy */
+  --masan-group-head:     #64748B;  /* tiêu đề nhóm trong sidebar */
+
+  /* ================================================================
+   * Bộ token thiết kế DCS-12 (Ver2) — nguồn giá trị tập trung.
+   * ================================================================ */
+
+  /* --- Màu chủ đạo (Yêu cầu 1.1) — trỏ sang bảng màu Masan --- */
+  --color-primary:        var(--masan-700);  /* nút chính, thanh điều hướng, tiêu đề */
+  --color-primary-dark:   var(--masan-900);  /* di chuột, thanh trên cùng */
+
+  /* --- Nền & mặt & chữ & viền (Yêu cầu 1.2) — trỏ sang bảng màu Masan --- */
+  --color-bg:             var(--masan-25);         /* nền trang */
+  --color-surface:        #FFFFFF;                 /* thẻ, bảng, biểu mẫu */
+  --color-surface-alt:    var(--masan-50);         /* đầu bảng, nút phụ */
+  --color-text:           var(--masan-text-main);  /* chữ chính */
+  --color-text-muted:     var(--masan-text-secondary);  /* chú thích, nhãn */
+  --color-border:         var(--masan-100);        /* đường kẻ, viền ô nhập */
+
+  /* --- Bốn cặp màu trạng thái: chữ + nền nhạt (Yêu cầu 1.3) --- */
+  --status-error-fg:      #E63946;  --status-error-bg:   #FDECEE;
+  --status-success-fg:    #2DC653;  --status-success-bg: #E9F9EE;
+  --status-warning-fg:    #F4A261;  --status-warning-bg: #FEF3E7;
+  --status-info-fg:       var(--masan-700);  --status-info-bg:    var(--masan-50);
+
+  /* --- Phông (Yêu cầu 1.4) — ưu tiên Inter, dự phòng hệ thống --- */
+  --font-stack: 'Inter', -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, system-ui, sans-serif;
+
+  /* --- Thang cỡ chữ + đậm (Yêu cầu 1.5, 1.6) --- */
+  --fs-page:    19px;   --fw-page:    600;   /* tiêu đề trang */
+  --fs-section: 15px;   --fw-section: 600;   /* tiêu đề mục */
+  --fs-subtle:  13.5px; --fw-subtle:  600;   /* tiêu đề nhỏ (trong thẻ) */
+  --fs-body:    14px;   --fw-body:    400;   /* chữ thường — nhỏ nhất cho nội dung đọc */
+  --fs-aux:     12.5px;                      /* chữ phụ (bảng, chú thích) */
+  --fs-small:   11px;                        /* chữ nhỏ (ghi chú dưới ô nhập) */
+  --fs-badge:   11px;                        /* nhãn trạng thái */
+  --fs-btn-sm:  11.5px;                      /* nút nhỏ / đầu bảng */
+
+  /* --- Giãn dòng (Yêu cầu 1.7) --- */
+  --lh-body: 1.5;
+
+  /* --- Khoảng cách, bội số 4px (Yêu cầu 1.8) --- */
+  --sp-1: 4px;  --sp-2: 8px;  --sp-3: 12px;  --sp-4: 16px;  --sp-5: 20px;
+
+  /* --- Bo góc (Yêu cầu 1.9) --- */
+  --radius: 7px;        /* thẻ, ô nhập, nút (khoảng 6–8px) */
+  --radius-pill: 12px;  /* nhãn trạng thái */
+  /* Thang bo góc Masan — dùng cho thẻ/bảng mới; giữ --radius cũ dùng rộng rãi */
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+
+  /* --- Đổ bóng duy nhất (Yêu cầu 1.10) — bóng thẻ Masan --- */
+  --shadow-card: 0 1px 3px 0 rgba(0,43,84,.06), 0 1px 2px -1px rgba(0,43,84,.04);
+
+  /* ================================================================
+   * FROSTED-GLASS — token kính mờ (chỉ BỔ SUNG, không đổi tên token cũ).
+   * Áp cho các lớp mặt phẳng dùng chung; giữ nguyên tông xanh Masan.
+   * Mỗi mặt kính luôn có fallback đặc (--glass-bg-solid) khai báo TRƯỚC
+   * lớp trong mờ, để trình duyệt không hỗ trợ backdrop-filter vẫn đọc rõ.
+   * ================================================================ */
+  --glass-bg:            rgba(255, 255, 255, 0.62);   /* mặt sáng trong mờ chuẩn */
+  --glass-bg-strong:     rgba(255, 255, 255, 0.78);   /* mặt cần tương phản chữ cao (login, bảng, dropdown) */
+  --glass-bg-solid:      #FBFDFF;                       /* FALLBACK đặc (gần trắng, ánh xanh Masan) */
+  --glass-border:        rgba(255, 255, 255, 0.55);   /* viền sáng 1px trong mờ */
+  --glass-blur:          14px;                          /* bán kính blur chuẩn */
+  --glass-shadow:        0 8px 30px rgba(0, 43, 84, 0.10), 0 2px 8px rgba(0, 43, 84, 0.06);  /* bóng lớp ánh navy Masan */
+  --glass-sidebar-bg:        rgba(0, 43, 84, 0.72);    /* navy thương hiệu trong mờ cho sidebar */
+  --glass-sidebar-bg-solid:  var(--masan-900);         /* FALLBACK đặc cho sidebar */
+  --page-gradient:       linear-gradient(160deg, #EAF3FC 0%, #F4F8FC 45%, #FDFEFF 100%);  /* nền trang dốc xanh Masan nhạt */
+
+  /* ================================================================
+   * ALIAS TƯƠNG THÍCH NGƯỢC — token cũ trỏ sang token DCS-12 mới.
+   * Giữ mọi view chưa di trú đổi sang tông hải quân mà KHÔNG đổi
+   * tên lớp hay markup. Gỡ dần sau khi view đã dùng token mới.
+   * ================================================================ */
+  --bg:         var(--color-bg);
+  --surface:    var(--color-surface);
+  --border:     var(--color-border);
+  --text:       var(--color-text);
+  --muted:      var(--color-text-muted);
+  --brand:      var(--color-primary);
+  --brand-dark: var(--color-primary-dark);
+  --danger:     var(--status-error-fg);
+  --topbar-h: 56px;
+  --sidebar-w: 240px;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font-stack);
+  font-size: var(--fs-body);
+  line-height: var(--lh-body);
+  color: var(--color-text);
+  /* Nền trang: dốc xanh Masan nhạt, gắn fixed để đọc được sau mọi panel kính.
+   * background-color là fallback đặc, giữ nền phẳng --color-bg cũ nếu gradient lỗi. */
+  background-color: var(--color-bg);
+  background: var(--page-gradient) fixed;
+}
+
+/* Tiêu đề toàn cục theo thang chữ DCS-12 (Yêu cầu 1.5, 1.6, 2.4).
+ * Chỉ đặt mặc định hợp lý; view có thể ghi đè cỡ riêng khi cần. */
+h1 { font-size: var(--fs-page);    font-weight: var(--fw-page); }
+h2 { font-size: var(--fs-section); font-weight: var(--fw-section); }
+h3 { font-size: var(--fs-subtle);  font-weight: var(--fw-subtle); }
+
+a { color: var(--brand); text-decoration: none; }
+a:hover { text-decoration: underline; }
+
+/* FROSTED-GLASS — mặt kính dùng chung: khối quy tắc đã DỜI xuống CUỐI FILE
+ * (ngay trên khối FALLBACK) để thắng theo thứ tự nguồn các quy tắc nền
+ * per-component bên dưới (vd .topbar, .login-card, .data-table, .detail-*
+ * đặt background shorthand sau khối này). Xem "FROSTED-GLASS — mặt kính
+ * dùng chung (áp dụng cuối)" ở cuối file. */
+
+/* ---- Thanh điều hướng ---- */
+.topbar {
+  height: var(--topbar-h);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background: var(--surface);
+  border-bottom: 1px solid var(--masan-100);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.topbar-left { display: flex; align-items: center; gap: 16px; flex: 1; }
+/* Logo DCS dạng badge vuông bo góc, nền gradient Masan, chữ trắng đậm */
+.brand {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--masan-700), var(--masan-900));
+  color: #fff;
+  font-weight: 700;
+  font-size: 14px;
+  letter-spacing: .02em;
+}
+.brand:hover { text-decoration: none; }
+.brand-wrap { display: flex; align-items: center; gap: 8px; }
+.brand-sub { font-size: 12px; color: var(--masan-text-secondary); white-space: nowrap; }
+.search { flex: 1; max-width: 520px; }
+/* Ô tìm kiếm: icon kính lúp bên trái, nền --masan-25, focus đổi trắng + vòng focus */
+.search input {
+  width: 100%;
+  padding: 8px 12px 8px 34px;
+  border: 1px solid var(--masan-100);
+  border-radius: 8px;
+  font-size: 14px;
+  background-color: var(--masan-25);
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2394A3B8' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Ccircle cx='11' cy='11' r='8'/%3E%3Cline x1='21' y1='21' x2='16.65' y2='16.65'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: 10px center;
+}
+.search input:focus {
+  background-color: #fff;
+  border-color: var(--masan-600);
+  box-shadow: 0 0 0 3px rgba(0,119,230,.15);
+  outline: none;
+}
+.topbar-right { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+/* Điều khiển drawer mobile — ADD-only, chỉ ảnh hưởng markup MỚI.
+ * Trên desktop (>768px) công tắc + hamburger + lớp phủ luôn ẩn; chúng chỉ
+ * được bật trong @media (max-width:768px) ở cuối file. */
+.nav-toggle { display: none; }
+.nav-hamburger { display: none; }
+.nav-overlay { display: none; }
+.user-role { color: var(--muted); font-size: 12px; }
+/* Avatar tròn chữ cái đầu */
+.topbar .avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: var(--masan-700);
+  color: #fff;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 12px;
+  font-weight: 600;
+}
+/* Nút Đăng xuất dạng pill nhẹ; hover đảo sang nền --masan-700 chữ trắng */
+.logout {
+  background: var(--masan-50);
+  color: var(--masan-700);
+  border: 1px solid var(--masan-100);
+  border-radius: 9999px;
+  padding: 6px 14px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.logout:hover { background: var(--masan-700); color: #fff; text-decoration: none; }
+
+/* ---- Bố cục ứng dụng ---- */
+.app-shell { display: flex; min-height: calc(100vh - var(--topbar-h)); }
+
+.sidebar {
+  width: var(--sidebar-w);
+  flex-shrink: 0;
+  /* Kính mờ navy thương hiệu: fallback đặc TRƯỚC, lớp trong mờ SAU.
+   * Giữ nguyên toàn bộ quy tắc chữ/icon/active bên dưới để nhãn luôn rõ. */
+  background-color: var(--glass-sidebar-bg-solid);
+  background-color: var(--glass-sidebar-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-right: none;
+  padding: 12px 0;
+  display: flex;
+  flex-direction: column;
+}
+.sidebar ul { list-style: none; margin: 0; padding: 0; }
+.sidebar li a {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 9px 20px;
+  color: var(--masan-light-text);
+  font-size: 14px;
+  border-left: 4px solid transparent;
+}
+/* Icon mục menu: khung cố định để nhãn thẳng hàng; kế thừa màu chữ. */
+.sidebar .nav-ic { flex-shrink: 0; width: 19px; height: 19px; display: inline-flex; opacity: .85; }
+.sidebar .nav-ic svg { width: 19px; height: 19px; }
+.sidebar li a:hover .nav-ic, .sidebar li a.active .nav-ic { opacity: 1; }
+.sidebar .nav-label { flex: 1; min-width: 0; }
+/* Badge đếm (vd receipt chờ phản hồi): tròn, nền sky, chữ navy đậm. */
+.sidebar .nav-badge {
+  flex-shrink: 0; min-width: 20px; height: 20px; padding: 0 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 10px; background: var(--masan-sky); color: var(--masan-950);
+  font-size: 11px; font-weight: 700; line-height: 1;
+}
+.sidebar li a:hover { background: var(--masan-800); color: #fff; text-decoration: none; }
+/* Trạng thái đang chọn: nền --masan-700, chữ trắng đậm, vạch chỉ báo sky bên trái */
+.sidebar li a.active,
+.sidebar li a[aria-current="page"] {
+  background: var(--masan-700);
+  color: #fff;
+  font-weight: 600;
+  border-left: 4px solid var(--masan-sky);
+}
+/* Tiêu đề nhóm nhỏ, in hoa, chữ mờ — gom nhóm trực quan các mục hiện có */
+.sidebar-group {
+  font-size: 11px;
+  text-transform: uppercase;
+  color: var(--masan-group-head);
+  letter-spacing: .05em;
+  padding: 12px 20px 4px;
+}
+/* Mục không có quyền (chú thích) trên nền navy */
+.sidebar li.muted { color: var(--masan-text-muted); padding: 9px 20px; font-size: 13px; }
+.phase-note {
+  margin-top: auto;
+  padding: 12px 20px;
+  font-size: 12px;
+  color: var(--masan-light-text);
+  opacity: .75;
+}
+
+/* ---- Nội dung ---- */
+.content { flex: 1; padding: 28px 32px; }
+/* Tiêu đề trang (Page Header) — khoảng cách dưới nhất quán, màu navy Masan */
+.content h1 { margin: 0 0 16px; color: var(--masan-900); }
+.home h1 { font-size: 24px; margin: 0 0 8px; }
+.lead { color: var(--muted); margin: 0 0 24px; }
+.quick-search { max-width: 520px; display: flex; }
+.quick-search form { display: flex; gap: 8px; width: 100%; }
+.quick-search input {
+  flex: 1;
+  padding: 10px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+}
+.quick-search button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 8px;
+  background: var(--brand);
+  color: #fff;
+  cursor: pointer;
+}
+.quick-search button:hover { background: var(--brand-dark); }
+.build-note {
+  margin-top: 32px;
+  padding: 12px 16px;
+  background: #eef5ff;
+  border: 1px solid #cfe0ff;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--brand-dark);
+}
+
+/* ---- Đăng nhập (T-010) ---- */
+.login-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; }
+.login-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 32px;
+  width: 360px;
+  /* Giữ bóng đậm hơn cho khung đăng nhập nổi bật giữa trang; giữ tên class */
+  box-shadow: 0 4px 24px rgba(0,0,0,.06);
+}
+.login-card h1 { margin: 0; color: var(--brand-dark); }
+.login-sub { color: var(--muted); font-size: 13px; margin: 4px 0 20px; }
+.login-card label { display: block; margin-bottom: 12px; font-size: 13px; color: var(--muted); }
+.login-card input {
+  width: 100%; padding: 9px 12px; margin-top: 4px;
+  border: 1px solid var(--border); border-radius: 8px; font-size: 14px;
+}
+.login-card button {
+  width: 100%; padding: 10px; margin-top: 8px; border: none; border-radius: 8px;
+  background: var(--brand); color: #fff; font-size: 15px; cursor: pointer;
+}
+.login-card button:hover { background: var(--brand-dark); }
+.login-error {
+  background: #fdecec; border: 1px solid #f5c2c2; color: var(--danger);
+  padding: 10px 12px; border-radius: 8px; font-size: 13px; margin-bottom: 16px;
+}
+
+/* ---- Dải cảnh báo cố định (DCS-7 §7.4) ---- */
+/* Giữ tên lớp cũ, nhưng restyle thành Banner Xanh Masan (không còn tông cam cũ):
+ * nền --masan-50, viền --masan-100, viền trái 4px --masan-700, chữ --masan-900. */
+.warn-banner {
+  border-left: 4px solid var(--masan-700);
+  border-top: 1px solid var(--masan-100);
+  border-right: 1px solid var(--masan-100);
+  border-bottom: 1px solid var(--masan-100);
+  background: var(--masan-50);
+  color: var(--masan-900);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius);
+  margin: var(--sp-3) 0 var(--sp-5);
+  font-size: var(--fs-body);
+}
+
+/* ---- Bảng dữ liệu (Yêu cầu 8) ---- */
+/* Quy ước: cột hành động luôn ở cuối bảng (Yêu cầu 8.4) — không cần CSS,
+   chỉ giữ bố cục cột hiện tại. Không dùng sọc nền xen kẽ (Yêu cầu 8.6). */
+/* Bọc bảng trong khung thẻ trắng Masan: viền --masan-100, bo --radius-lg, bóng thẻ */
+.data-table {
+  width: 100%; border-collapse: separate; border-spacing: 0; margin: 12px 0 24px;
+  background: var(--surface);
+  border: 1px solid var(--masan-100);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+}
+.data-table th, .data-table td {
+  text-align: left; padding: 12px 16px; font-size: 14px;
+}
+/* Mỗi dòng kẻ dưới mảnh (Yêu cầu 8.2) */
+.data-table td { border-bottom: 1px solid var(--masan-100); }
+/* Đầu bảng nền xanh nhạt, chữ in hoa nhỏ đậm màu --masan-800 (Yêu cầu 8.1) */
+.data-table th {
+  background: var(--masan-50); color: var(--masan-800);
+  font-size: 11px; font-weight: 700; text-transform: uppercase;
+  border-bottom: 1px solid var(--masan-100);
+  position: sticky; top: var(--topbar-h); z-index: 2;
+}
+/* Bo góc trên của ô đầu/cuối hàng tiêu đề để khớp viền bảng bo tròn. */
+.data-table thead tr:first-child th:first-child { border-top-left-radius: var(--radius-lg); }
+.data-table thead tr:first-child th:last-child { border-top-right-radius: var(--radius-lg); }
+/* Đổi nền dòng khi di chuột (Yêu cầu 8.3) */
+.data-table tbody tr:hover { background: var(--masan-25); }
+/* Dòng rỗng: chữ nhạt nêu vì sao bảng rỗng (Yêu cầu 8.5) */
+.data-table .empty-row td { color: var(--color-text-muted); }
+/* Nhãn bộ phận (QA, PROD...): nền --masan-50, chữ --masan-800, viền --masan-100 */
+.chip {
+  display: inline-block; padding: 2px 8px; margin: 2px; border-radius: 6px;
+  background: var(--masan-50); color: var(--masan-800);
+  border: 1px solid var(--masan-100); font-weight: 600; font-size: 12px;
+}
+
+/* ---- Form nội dòng ---- */
+.inline-form { display: inline-flex; gap: 6px; flex-wrap: wrap; align-items: center; margin: 4px 0; }
+.inline-form input, .inline-form select {
+  padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px;
+}
+/* Nút chính (Tạo / Gán): nền --masan-700, chữ trắng đậm, hover --masan-600 */
+.inline-form button {
+  padding: 6px 12px; border: none; border-radius: var(--radius-md); background: var(--masan-700); color: #fff; cursor: pointer; font-size: 13px; font-weight: 600;
+}
+.inline-form button:hover { background: var(--masan-600); }
+/* Nút Ngừng (phụ/nguy hiểm mềm) — PHẢI khác hẳn nút Gán: xám xanh nhạt, hover đỏ cảnh báo */
+.inline-form button.btn-deactivate,
+.btn-deactivate {
+  background: #F1F5F9; color: #475569; border: 1px solid #E2E8F0; font-weight: 600;
+}
+.inline-form button.btn-deactivate:hover,
+.btn-deactivate:hover {
+  background: #FEE2E2; color: #DC2626; border-color: #FECACA;
+}
+/* Nhãn trạng thái "Hoạt động" dạng pill, có chấm tròn xanh dẫn đầu */
+.status-pill--active {
+  display: inline-flex; align-items: center; gap: 6px;
+  border-radius: 9999px; background: #F0F9FF; color: var(--masan-700);
+  border: 1px solid #BAE6FD; padding: 2px 10px; font-size: 11px; font-weight: 600;
+}
+.status-pill--active::before {
+  content: ""; width: 6px; height: 6px; border-radius: 50%; background: var(--masan-600);
+}
+/* Cụm thao tác trong bảng người dùng: select + nút Gán cao bằng nhau (34px) */
+.user-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.user-actions .inline-form { margin: 0; }
+.user-actions .inline-form select,
+.user-actions .inline-form input,
+.user-actions .inline-form button { height: 34px; box-sizing: border-box; }
+/* Khu "Thêm người dùng" đóng khung thành thẻ trắng riêng biệt */
+.add-user-card {
+  background: #fff; border: 1px solid var(--masan-100);
+  border-radius: 12px; padding: 20px; margin-top: 24px;
+}
+.add-user-card__title {
+  display: flex; align-items: center; gap: 8px;
+  margin: 0 0 12px; padding-left: 10px;
+  border-left: 4px solid var(--masan-700); color: var(--masan-900);
+}
+.add-user-form { display: flex; gap: 12px; flex-wrap: wrap; align-items: center; }
+.add-user-form input, .add-user-form button { height: 38px; box-sizing: border-box; }
+
+.org-grid { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 20px; }
+.org-col { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; box-shadow: var(--shadow-card); }
+.org-col h2 { font-size: 15px; margin: 0 0 10px; }
+.org-col ul { list-style: none; padding: 0; margin: 0 0 12px; font-size: 13px; }
+.org-col li { padding: 3px 0; border-bottom: 1px solid var(--bg); }
+.role-form { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+.role-form select { padding: 6px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+.role-form button { padding: 7px 14px; border: none; border-radius: 6px; background: var(--brand); color: #fff; cursor: pointer; }
+
+/* ---- Form đăng ký (T-021) ---- */
+.reg-form fieldset {
+  border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px;
+}
+.reg-form legend { font-weight: 600; padding: 0 8px; color: var(--brand-dark); }
+.reg-form label { display: block; margin-bottom: 10px; font-size: 13px; color: var(--muted); }
+.reg-form input, .reg-form select {
+  display: block; width: 100%; max-width: 420px; margin-top: 4px;
+  padding: 8px 10px; border: 1px solid var(--border); border-radius: 6px; font-size: 14px;
+}
+button.primary { padding: 10px 20px; border: none; border-radius: 8px; background: var(--brand); color: #fff; font-size: 15px; cursor: pointer; }
+button.primary:hover { background: var(--brand-dark); }
+button.danger { padding: 8px 16px; border: none; border-radius: 8px; background: var(--danger); color: #fff; cursor: pointer; }
+.btn-link { display: inline-block; padding: 6px 0; }
+
+/* ---- Trạng thái ---- */
+.status { padding: 2px 8px; border-radius: 12px; font-size: 12px; }
+.status-cho_xac_nhan { background: #fff3cd; color: #7a5c00; }
+.status-da_dang_ky { background: #d1e7ff; color: #17408b; }
+.status-hieu_luc { background: #d4f4dd; color: #146c2e; }
+.status-tu_choi { background: #fdecec; color: var(--danger); }
+.status-het_hieu_luc, .status-thu_hoi { background: #eee; color: #666; }
+.reject-reason { font-size: 12px; color: var(--danger); margin-top: 4px; }
+
+/* ---- Checklist xác nhận (T-027) ---- */
+.check-list { list-style: none; padding: 0; }
+.check-item { display: flex; align-items: center; gap: 8px; padding: 8px 10px; border-bottom: 1px solid var(--border); }
+.check-no { width: 28px; color: var(--muted); font-size: 12px; }
+.check-mark.ok { color: var(--status-success-fg); font-weight: 700; }
+.check-mark.fail { color: var(--status-error-fg); font-weight: 700; }
+/* Nhóm Admin tự tích nhìn khác hẳn nhóm tự động (DCS-2 §2.4) */
+.check-item.check-admin { background: #fbf8ee; border-left: 3px solid #f0c040; }
+.check-label.admin { font-weight: 600; }
+.check-label.locked { opacity: .6; }
+.btn-diff { margin-left: 8px; padding: 4px 10px; border: 1px solid var(--brand); background: #fff; color: var(--brand); border-radius: 6px; cursor: pointer; }
+/* Nút 'Báo bất thường' — cùng dáng .btn-diff nhưng màu cảnh báo (amber) để phân biệt với nút In (xanh brand). */
+.btn-report { display: inline-block; margin-left: 8px; padding: 4px 10px; border: 1px solid var(--status-warning-fg); background: var(--status-warning-bg); color: #9a5a1e; border-radius: 6px; cursor: pointer; font: inherit; }
+.btn-report:hover { background: var(--status-warning-fg); color: #fff; }
+/* Form từ chối receipt: xếp DỌC ở mọi kích thước (select + textarea + nút).
+ * Trước đây display:flex (hàng ngang) khiến nút 'Từ chối tiếp nhận' bị nhồi
+ * ngoài panel 320px trên desktop -> không thấy. Column mới hiện đủ các trường. */
+.reject-form { margin-top: 16px; display: flex; flex-direction: column; gap: var(--sp-3); }
+.reject-form h2 { font-size: var(--fs-section); font-weight: var(--fw-section); margin: 0; color: var(--masan-900); }
+.reject-form > label { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-aux); color: var(--muted); }
+.reject-form input, .reject-form select, .reject-form textarea {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  font-size: 13px; background: #fff; color: var(--color-text); font-family: inherit;
+}
+.reject-form input:focus, .reject-form select:focus, .reject-form textarea:focus {
+  border-color: var(--masan-600); box-shadow: 0 0 0 3px rgba(0,119,230,.12); outline: none;
+}
+/* Nút từ chối: block, màu cảnh báo (đỏ) cho rõ là hành động từ chối. */
+.reject-form button[type=submit] {
+  align-self: flex-start; margin-left: 0; padding: 8px 16px; border-radius: var(--radius-md); cursor: pointer;
+  background: var(--status-error-bg); color: var(--status-error-fg); border: 1px solid #F6C9CE; font-weight: 600;
+}
+.reject-form button[type=submit]:hover { background: #FBDBDE; }
+.doc-title { color: var(--muted); font-size: 15px; margin-top: -8px; }
+
+/* ---- Trang chủ khối việc (T-039) ---- */
+.home-block { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; margin: 16px 0; box-shadow: var(--shadow-card); }
+.home-block h2 { font-size: 16px; margin: 0 0 10px; }
+.home-list { list-style: none; padding: 0; margin: 0; }
+.home-list li { padding: 6px 0; border-bottom: 1px solid var(--bg); }
+
+/* ---- Dải đỏ toàn chiều rộng (DCS-7 §3.2) ---- */
+/* Giữ tên lớp cũ, restyle theo thân .alert-banner--error (tương thích ngược). */
+.danger-banner {
+  border-left: 3px solid var(--status-error-fg);
+  background: var(--status-error-bg);
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius);
+  margin: var(--sp-3) 0 var(--sp-5);
+  font-size: var(--fs-body);
+  font-weight: 600;
+}
+.danger-link { color: var(--danger); }
+
+/* ---- Chi tiết ---- */
+.detail-grid { display: grid; grid-template-columns: minmax(0, 2fr) minmax(0, 1fr); gap: 24px; }
+.detail-main, .detail-side { min-width: 0; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px 20px; }
+.detail-side dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 12px; font-size: 13px; }
+.detail-side dt { color: var(--muted); }
+.section-block { margin-bottom: 16px; }
+.section-block h3 { font-size: 14px; margin: 0 0 4px; }
+.muted { color: var(--muted); font-size: 13px; }
+
+/* ---- Tìm kiếm (T-056, T-057, T-058) ---- */
+.search { position: relative; }
+.suggest-box { position: absolute; top: 100%; left: 0; right: 0; z-index: 20; }
+.suggest-list { list-style: none; margin: 4px 0 0; padding: 4px 0; background: #fff; border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 4px 16px rgba(0,0,0,.08); }
+.suggest-list li a { display: block; padding: 8px 12px; font-size: 13px; color: var(--text); }
+.suggest-list li a:hover { background: var(--bg); text-decoration: none; }
+.suggest-empty { padding: 8px 12px; color: var(--muted); font-size: 13px; background: #fff; border: 1px solid var(--border); border-radius: 8px; margin-top: 4px; }
+.search-bar-full { display: flex; gap: 10px; align-items: center; margin-bottom: 16px; }
+.search-bar-full input[type=search] { flex: 1; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; }
+.hist-toggle { font-size: 13px; color: var(--muted); white-space: nowrap; }
+.no-results { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; }
+.no-results ul { color: var(--muted); }
+.result-list { list-style: none; padding: 0; }
+.result-item { padding: 12px; border-bottom: 1px solid var(--border); }
+.result-item.historical { background: #f4f4f4; }
+.result-item.historical .status { }
+.result-line2 { color: var(--muted); font-size: 12px; margin-top: 2px; }
+.result-snippet { margin-top: 6px; font-size: 13px; background: #fffbe6; padding: 6px 8px; border-radius: 6px; }
+
+/* ---- So sánh (T-059) ---- */
+/* Hai cột song song, cuộn đồng bộ tự nhiên vì cùng một lưới chung (Yêu cầu 10.1) */
+.compare-grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 1px; background: var(--color-border); border: 1px solid var(--color-border); border-radius: var(--radius); overflow: hidden; }
+.compare-head { min-width: 0; background: var(--color-surface-alt); color: var(--color-text-muted); padding: 8px 12px; font-weight: 600; }
+.compare-cell { min-width: 0; background: var(--color-surface); padding: 10px 12px; font-size: 13px; overflow-wrap: anywhere; }
+/* Ô trống bên cột không có mục tương ứng — nền trung tính nhạt, chữ "(không có)" (Yêu cầu 10.2) */
+.compare-cell.empty { background: var(--color-surface-alt); }
+/* Mục thêm: xanh nhạt (Yêu cầu 10.2) */
+.compare-cell.added { background: var(--status-success-bg); }
+/* Mục xoá: đỏ nhạt (Yêu cầu 10.3) */
+.compare-cell.removed { background: var(--status-error-bg); }
+/* Nội dung đổi: fallback trung tính; cặp trái/phải bôi đỏ/xanh theo cột (Yêu cầu 10.4) */
+.compare-cell.changed { background: var(--color-surface-alt); }
+.compare-cell.changed.left { background: var(--status-error-bg); }
+.compare-cell.changed.right { background: var(--status-success-bg); }
+.compare-cell p { margin: 4px 0 0; white-space: pre-wrap; }
+/* Mục không đổi thu gọn: chỉ hiện tiêu đề, mở khi bấm — dùng <details><summary>, không cần JS (Yêu cầu 10.5) */
+.compare-collapsed { border-radius: var(--radius); }
+.compare-collapsed > summary { cursor: pointer; list-style: none; padding: 8px 12px; font-weight: 600; color: var(--color-text-muted); background: var(--color-surface-alt); }
+.compare-collapsed > summary::-webkit-details-marker { display: none; }
+.compare-collapsed > summary::before { content: "▸ "; }
+.compare-collapsed[open] > summary::before { content: "▾ "; }
+.tag { font-size: 11px; background: var(--status-warning-bg); color: var(--status-warning-fg); padding: 1px 6px; border-radius: var(--radius-pill); }
+
+/* ---- Phân phối & xác nhận đọc (GĐ6) ---- */
+.chip-x { border: none; background: transparent; color: var(--danger); cursor: pointer; font-size: 14px; padding: 0 2px; }
+.matrix-list { list-style: none; padding: 0; font-size: 13px; }
+.matrix-list li { padding: 3px 0; }
+.ack-done { color: #146c2e; font-size: 14px; background: #eaf7ee; padding: 8px 12px; border-radius: 8px; display: inline-block; }
+
+/* ---- Gói ban hành & rà soát (GĐ7) ---- */
+.pkg-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; margin-bottom: 16px; box-shadow: var(--shadow-card); }
+.pkg-head { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; margin-bottom: 8px; }
+.pkg-prog { color: var(--muted); font-size: 12px; }
+.verdict-form { display: flex; gap: 6px; align-items: center; }
+.verdict-form select, .verdict-form input { padding: 5px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: 13px; }
+.verdict-form button { padding: 5px 10px; border: none; border-radius: 6px; background: var(--brand); color: #fff; cursor: pointer; }
+
+/* ---- Tra cứu QR công khai (T-086, DCS-7 §7.5 / DCS-12 §5.1, Yêu cầu 20) ---- */
+/* Trang standalone: nền phủ TOÀN MÀN HÌNH (card width:100% + min-height:100vh),
+   chữ ≥32px đậm để đọc cách 1m, kèm ký hiệu ✓/✕/? (màu không phải tín hiệu duy nhất). */
+.verify-page { display: flex; align-items: center; justify-content: center; min-height: 100vh; margin: 0; }
+.verify-card { text-align: center; padding: 40px; width: 100%; min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; }
+.verify-big { font-size: 96px; line-height: 1; font-weight: 800; }
+.verify-card p { font-size: 32px; font-weight: 700; margin: 16px 0 0; max-width: 640px; }
+.verify-ok { background: var(--status-success-fg); color: #fff; }
+.verify-bad { background: var(--status-error-fg); color: #fff; }
+.verify-unknown { background: var(--color-surface-alt); color: var(--color-text); }
+/* GUARD: trang tra cứu QR công khai PHẢI đặc, tương phản cao (đọc cách 1m) —
+ * KHÔNG bao giờ kính mờ. Dù không nằm trong nhóm kính, vẫn chặn mọi cascade
+ * backdrop-filter để chắc chắn không bị làm mờ. */
+.verify-page, .verify-card, .verify-ok, .verify-bad, .verify-unknown {
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* ---- Hỏi đáp (T-088) ---- */
+.qa-answer { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 16px; white-space: pre-wrap; }
+.qa-citations { list-style: none; padding: 0; }
+.qa-citations li { padding: 6px 10px; background: #fffbe6; border-radius: 6px; margin: 4px 0; font-size: 13px; }
+
+/* ---- Chỉ số vận hành (T-095, T-103) ---- */
+.metric-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 16px; margin: 16px 0; }
+.metric-card { background: var(--surface); border: 1px solid var(--border); border-radius: 8px; padding: 20px; text-align: center; box-shadow: var(--shadow-card); }
+.metric-num { font-size: 36px; font-weight: 800; color: var(--brand-dark); }
+.metric-label { color: var(--muted); font-size: 13px; margin-top: 6px; }
+.metric-bad { border-color: #f5b5b5; background: #fdf3f3; }
+.metric-bad-text { color: var(--danger); font-weight: 700; }
+
+/* ---- Bổ sung: đếm người nhận realtime, upload ---- */
+.recip-count { margin: 4px 0 12px; font-size: 13px; }
+.reg-form input[type=file] { padding: 6px; background: #fafafa; }
+
+/* ================================================================
+ * COMPONENT 1 — Nhãn trạng thái + Nhãn cấp phạm vi (ver2-ui-design-system, Yêu cầu 3)
+ * Task 2.1. Tầng trình bày; chỉ BỔ SUNG, không xoá/đổi tên lớp cũ.
+ *
+ * Viên thuốc bo tròn, chữ đậm nhỏ, nền nhạt cùng tông (3.1). Luôn kèm chữ mô tả
+ * (2.1). Nhãn giãn theo nội dung — không đặt width cứng, white-space:nowrap để
+ * không vỡ giữa cụm; ô chứa tự flex-wrap (2.5, 2.6).
+ *
+ * Gộp selector `.status, .status-label` để 7 usage `.status-*` cũ nhận cùng
+ * kiểu viên thuốc mới (tương thích ngược — giữ 87 test render xanh).
+ * ================================================================ */
+.status, .status-label {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-badge);
+  font-weight: 600;
+  padding: 2px 8px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+
+/* --- Bảy trạng thái tài liệu (Yêu cầu 3.2) ---
+ * Restyle lớp cũ `.status-<code>` theo bảng màu DCS-12 và cung cấp biến thể mới
+ * `.status-label--<code>` với cùng giá trị. */
+.status-cho_hoan_thien,
+.status-label--cho_hoan_thien { background: #EEF1F4; color: #41505E; }
+
+.status-cho_xac_nhan,
+.status-label--cho_xac_nhan { background: var(--status-warning-bg); color: #B4700F; }
+
+.status-tu_choi,
+.status-label--tu_choi { background: var(--status-error-bg); color: var(--status-error-fg); }
+
+.status-da_dang_ky,
+.status-label--da_dang_ky { background: var(--status-info-bg); color: var(--status-info-fg); }
+
+.status-hieu_luc,
+.status-label--hieu_luc { background: var(--status-success-bg); color: #1E9E45; }
+
+.status-het_hieu_luc,
+.status-label--het_hieu_luc { background: #E4E7EB; color: #6B7785; }
+
+.status-thu_hoi,
+.status-label--thu_hoi { background: #F5E6E2; color: #9A4A2E; }
+
+/* --- Nhãn cấp phạm vi (Yêu cầu 3.4) ---
+ * Bộ màu RIÊNG, tách class để không nhầm với trạng thái tài liệu. Dùng chung
+ * kiểu viên thuốc; cố ý mượn nền nhạt của 4 màu trạng thái nhưng qua class khác. */
+.scope-label {
+  display: inline-flex;
+  align-items: center;
+  border-radius: var(--radius-pill);
+  font-size: var(--fs-badge);
+  font-weight: 600;
+  padding: 2px 8px;
+  white-space: nowrap;
+  line-height: 1.4;
+}
+.scope-label--group      { background: var(--status-error-bg);   color: var(--status-error-fg); }
+.scope-label--bu         { background: var(--status-warning-bg); color: #B4700F; }
+.scope-label--site       { background: var(--status-info-bg);    color: var(--status-info-fg); }
+.scope-label--department { background: var(--status-success-bg); color: #1E9E45; }
+
+/* ================================================================
+ * THÀNH PHẦN — Dải cảnh báo (Yêu cầu 4)
+ *
+ * Chiếm trọn chiều rộng, viền trái 3px, nền nhạt; bốn biến thể theo
+ * cặp token trạng thái ở Yêu cầu 1. Prefix loại là chữ (thêm ở partial
+ * components/alert-banner.eta) nên màu không bao giờ là dấu hiệu duy nhất.
+ * ================================================================ */
+.alert-banner {
+  border-left: 3px solid;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius);
+  margin: var(--sp-3) 0 var(--sp-5);
+  font-size: var(--fs-body);
+}
+.alert-banner--error   { border-color: var(--status-error-fg);   background: var(--status-error-bg); }
+.alert-banner--warning { border-color: var(--status-warning-fg); background: var(--status-warning-bg); }
+/* Banner info = Banner Xanh Masan: viền trái 4px --masan-700, nền --masan-50, chữ --masan-900 */
+.alert-banner--info    { border-left-width: 4px; border-color: var(--masan-700); background: var(--masan-50); color: var(--masan-900); }
+.alert-banner--success { border-color: var(--status-success-fg); background: var(--status-success-bg); }
+
+/* ================================================================
+ * THÀNH PHẦN — Nút (ver2-ui-design-system, Yêu cầu 5)
+ * Task 2.3. Tầng trình bày; chỉ BỔ SUNG, không xoá/đổi tên lớp cũ.
+ *
+ * Năm kiểu: Chính / Phụ / Nguy hiểm / Thành công / Nhỏ (Req 5.1). Nút
+ * không đặt chiều rộng cứng — giãn theo nội dung (Req 2.5/2.6). Nút Chính
+ * đổi nền đậm khi di chuột (Req 5.2). Khoá kèm lý do bọc trong .btn-group,
+ * chú thích .btn-reason hiện cạnh nút (Req 5.3, ở partial button.eta).
+ * ================================================================ */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 9px 16px;
+  border: none;
+  border-radius: var(--radius);
+  cursor: pointer;
+  font-size: var(--fs-body);
+  font-family: inherit;
+  line-height: 1.2;
+  text-decoration: none;
+}
+.btn--primary   { background: var(--color-primary); color: #fff; }
+.btn--primary:hover { background: var(--color-primary-dark); }
+.btn--secondary { background: var(--color-surface-alt); color: var(--color-text); border: 1px solid var(--color-border); }
+.btn--danger    { background: var(--status-error-fg); color: #fff; }
+.btn--success   { background: var(--status-success-fg); color: #fff; }
+.btn--small     { font-size: var(--fs-btn-sm); padding: 4px 10px; }
+.btn[disabled]  { opacity: .55; cursor: not-allowed; }
+
+.btn-group { display: inline-flex; align-items: center; gap: var(--sp-2); flex-wrap: wrap; }
+.btn-reason { color: var(--color-text-muted); font-size: var(--fs-small); }
+
+/* Tương thích ngược — class nút cũ dùng chung diện mạo .btn--* mà KHÔNG
+ * đổi tên. button.primary ~ .btn--primary; button.danger ~ .btn--danger.
+ * .btn-diff và .btn-link giữ nguyên (đã đọc token qua var(--brand)). */
+button.primary:hover { background: var(--color-primary-dark); }
+button.danger { background: var(--status-error-fg); }
+
+/* ================================================================
+ * THÀNH PHẦN 4 — Ô NHẬP + NHÃN (Yêu cầu 6)
+ * ----------------------------------------------------------------
+ * Nhãn phía trên ô (Req 6.1). Bốn trạng thái: Thường / :focus viền
+ * primary (Req 6.2) / .field--error viền đỏ + .field__hint--error nêu
+ * cách sửa (Req 6.3) / .field--locked nền phụ + ổ khoá 🔒 (Req 6.4).
+ * Thành phần standalone mới — KHÔNG đụng CSS .reg-form hiện có.
+ * ================================================================ */
+.field { margin-bottom: var(--sp-3); }
+.field__label { display: block; margin-bottom: var(--sp-1); font-size: var(--fs-aux); color: var(--color-text-muted); }
+.field__input {
+  display: block;
+  width: 100%;
+  max-width: 420px;
+  padding: 8px 10px;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  font-size: var(--fs-body);
+}
+.field__input:focus { outline: none; border-color: var(--color-primary); }
+.field--error .field__input { border-color: var(--status-error-fg); }
+.field__hint { font-size: var(--fs-small); color: var(--color-text-muted); }
+.field__hint--error { color: var(--status-error-fg); }
+.field--locked .field__input { background: var(--color-surface-alt); }
+
+/* ================================================================
+ * Ô checklist — 3 ký hiệu + mục tự tích (Thành phần 5, Yêu cầu 7)
+ * Bổ sung ký hiệu Cảnh báo và mục tự tích. Ký hiệu ✓/✕/! phân biệt
+ * bằng hình dạng chứ không chỉ màu (Req 7.1, 7.2). Giữ nguyên các
+ * lớp cũ .check-list/.check-item/.check-no/.check-mark.ok/.fail/
+ * .check-item.check-admin/.check-label.admin/.check-label.locked.
+ * ================================================================ */
+.check-mark.warn { color: var(--status-warning-fg); font-weight: 700; }
+/* Mục tự tích nhìn khác hẳn mục tự động: nền khác, viền trái vàng, chữ đậm
+ * (Req 7.3) — song song với .check-item.check-admin có sẵn. */
+.check-item--manual { background: #fbf8ee; border-left: 3px solid var(--status-warning-fg); font-weight: 600; }
+
+/* ================================================================
+ * Thẻ — .card (Thành phần 7, Yêu cầu 9.1)
+ * Nền trắng, viền mảnh, bo 8px, đệm 15px, đổ bóng duy nhất.
+ * Tiêu đề thẻ .card__title dùng tiêu đề nhỏ 13.5px.
+ * Các lớp thẻ cũ (.pkg-card, .metric-card, .home-block, .org-col,
+ * .login-card) đã restyle để dùng chung bóng/bo — giữ nguyên tên.
+ * ================================================================ */
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 8px;
+  padding: 15px;
+  box-shadow: var(--shadow-card);
+}
+.card__title {
+  font-size: var(--fs-subtle);
+  font-weight: var(--fw-subtle);
+  margin: 0 0 var(--sp-2);
+}
+
+/* ================================================================
+ * Thẻ kết quả tìm kiếm — .result-card (Thành phần 8, Yêu cầu 9.2–9.5)
+ * Ba dòng: (1) số hiệu + tiêu đề + nhãn trạng thái/phạm vi, (2) chữ phụ
+ * nhạt, (3) trích cấp mục nền xám rất nhạt + từ khoá bôi vàng. Bản hết
+ * hiệu lực: nền xám toàn thẻ + dòng nêu bản đang áp dụng (chữ đỏ).
+ * Giữ các lớp cũ .result-item / .result-item.historical / .result-line2 /
+ * .result-snippet làm ALIAS (search-results.eta còn dùng tới task 4.1).
+ * ================================================================ */
+.result-card { padding: var(--sp-3); border-bottom: 1px solid var(--color-border); }
+.result-card__line1 { display: flex; gap: var(--sp-2); align-items: center; flex-wrap: wrap; }
+.result-card__line1 strong { font-weight: 700; }
+.result-card__line2 { color: var(--color-text-muted); font-size: var(--fs-aux); margin-top: 2px; }
+.result-card__snippet { margin-top: var(--sp-2); font-size: var(--fs-aux); background: #FAFBFC; padding: 6px 8px; border-radius: var(--radius); }
+.result-card__snippet .hl { background: #FFF3B0; }
+.result-card--historical { background: #F4F4F4; }
+/* Nhấn đỏ cho bản lịch sử đã có sẵn qua màu nhãn trạng thái .status-label--het_hieu_luc;
+ * giữ selector này để dễ tăng cường về sau nếu cần. */
+.result-card--historical .status,
+.result-card--historical .status-label { }
+.result-card__superseded { color: var(--status-error-fg); font-size: var(--fs-aux); margin-top: 2px; }
+
+/* ================================================================
+ * Thanh tiến độ ba bước — .steps / .step (Thành phần 10, Yêu cầu 11)
+ * Ba ô ngang: bước hiện tại tô đậm (.step--current), bước đã xong có
+ * dấu ✓ và là liên kết bấm được (.step--done a), bước chưa tới màu
+ * nhạt là <span> không bấm (.step--todo). Trạng thái do dữ liệu
+ * steps + current truyền vào, không suy diễn ở CSS.
+ * ================================================================ */
+.steps { display: flex; gap: var(--sp-2); list-style: none; padding: 0; margin: 0 0 var(--sp-5); flex-wrap: wrap; }
+.step { flex: 1; min-width: 0; text-align: center; padding: var(--sp-2) var(--sp-3); border-radius: var(--radius); background: var(--color-surface-alt); color: var(--color-text-muted); font-size: var(--fs-aux); }
+.step--current { background: var(--color-primary); color: #fff; font-weight: 600; }
+.step--done { background: var(--status-success-bg); }
+.step--done a { color: var(--status-success-fg); font-weight: 600; }
+.step--todo { opacity: .7; }
+
+/* ================================================================
+ * Khối sức khoẻ tổ chức — .org-health (Thành phần 11, Yêu cầu 12)
+ * Mỗi .org-health__item gồm loại vấn đề + đối tượng + hậu quả; render
+ * theo thứ tự dữ liệu route đã sắp (không sắp lại ở view — Req 12.2).
+ * Khối rỗng: .org-health--ok hiện dòng xanh "Không phát hiện vấn đề nào"
+ * dùng --status-success-* (Req 12.3).
+ * ================================================================ */
+.org-health { display: flex; flex-direction: column; gap: var(--sp-2); }
+.org-health__item {
+  padding: var(--sp-2) var(--sp-3);
+  border-left: 3px solid var(--status-warning-fg);
+  background: var(--status-warning-bg);
+  border-radius: var(--radius);
+  font-size: var(--fs-body);
+}
+.org-health__consequence { color: var(--color-text-muted); }
+.org-health--ok {
+  padding: var(--sp-3) var(--sp-4);
+  border-left: 3px solid var(--status-success-fg);
+  background: var(--status-success-bg);
+  color: var(--status-success-fg);
+  border-radius: var(--radius);
+  font-weight: 600;
+}
+
+/* ================================================================
+ * THÀNH PHẦN — Thông báo nổi (Component 13, Yêu cầu 14) + Trang trống
+ * (Component 14, Yêu cầu 15). Task 2.11. Tầng trình bày; chỉ BỔ SUNG.
+ *
+ * Thông báo nổi: viên nổi góc dưới-phải, ba tông; chỉ cho hành động đã
+ * hoàn tất (Req 14.1–14.3). Tự ẩn qua <script> tối giản trong partial —
+ * KHÔNG dùng transition/animation CSS. KHÔNG dùng cho lỗi chặn (Req 14.4).
+ *
+ * Trang trống: khối nêu lý do CỤ THỂ vì sao trống (Req 15.1/15.3) + tuỳ
+ * chọn liên kết hành động gợi ý bước tiếp theo (Req 15.2). Giữ .no-results
+ * làm ALIAS (search-results.eta còn dùng tới task 4.1) — không gỡ.
+ * ================================================================ */
+.toast {
+  position: fixed;
+  right: var(--sp-5);
+  bottom: var(--sp-5);
+  background: #1D2733;
+  color: #fff;
+  padding: var(--sp-3) var(--sp-4);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-card);
+  z-index: 50;
+  max-width: 360px;
+}
+.toast--success { background: var(--status-success-fg); }
+.toast--error { background: var(--status-error-fg); }
+
+/* Trang trống. .no-results giữ nguyên phía trên làm alias; chia sẻ ý nghĩa
+ * "khối thông báo trống" với .empty-state cho tới khi các view di trú. */
+.empty-state {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius);
+  padding: var(--sp-5);
+}
+.empty-state__reason { color: var(--color-text-muted); margin: 0 0 var(--sp-2); }
+.empty-state__action { font-weight: 600; }
+
+/* ================================================================
+ * THÀNH PHẦN 12 — Mã QR + Lớp phủ bản in (.print-overlay) — Yêu cầu 13
+ * Khối cơ sở (hiển thị trên màn hình): viền nét đứt + nền xanh rất nhạt +
+ * thông tin bản in + dòng cảnh báo đỏ đậm. Việc ẩn khung/định vị trên cùng
+ * trang in nằm trong khối @media print (task 8).
+ * Dòng cảnh báo: "Bản in chỉ có giá trị tại thời điểm in — quét QR để kiểm tra".
+ * ================================================================ */
+.print-overlay {
+  border: 2px dashed #333;
+  background: #F4FAFF;
+  padding: var(--sp-4);
+  border-radius: var(--radius);
+  margin-bottom: var(--sp-4);
+}
+/* Mã QR tối thiểu 120×120px (Yêu cầu 13.1) */
+.print-overlay__qr { width: 120px; height: 120px; }
+/* Số hiệu, phiên bản, mã bản in, ngày in, người in (Yêu cầu 13.3) */
+.print-overlay__meta { font-size: var(--fs-aux); color: var(--color-text); }
+/* Dòng cảnh báo chữ đỏ đậm (Yêu cầu 13.4) */
+.print-overlay__warn { color: var(--status-error-fg); font-weight: 700; }
+
+/* ================================================================
+ * Trang kết quả tìm kiếm — bố cục hai cột (Màn 16, Yêu cầu 16.1, 2.3)
+ * --------------------------------------------------------------
+ * Cột lọc trái 200px cố định + danh sách kết quả chiếm phần còn lại.
+ * minmax(0,1fr) + min-width:0 để cột kết quả không tràn -> không cuộn
+ * ngang ở 1280px (Yêu cầu 2.3). Ô tìm + số kết quả + công tắc lịch sử
+ * nằm trong cột kết quả (16.2); mỗi kết quả là .result-card (16.3).
+ * ================================================================ */
+.search-layout { display: grid; grid-template-columns: 200px minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+.search-filters { }
+/* Công tắc gập bộ lọc — ADD-only, chỉ ảnh hưởng markup MỚI. Trên desktop công
+ * tắc + nhãn tóm tắt luôn ẩn và fieldset luôn hiện; chỉ đổi trong @media. */
+.filters-toggle { display: none; }
+.filters-summary { display: none; }
+.search-filters h2 { font-size: var(--fs-h3, 13.5px); margin: 0 0 var(--sp-3); }
+.search-filters fieldset { border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--sp-2) var(--sp-3); margin: 0 0 var(--sp-3); }
+.search-filters legend { font-size: var(--fs-aux); color: var(--color-text-muted); padding: 0 var(--sp-1); }
+.search-filters .filter-check { display: block; font-size: var(--fs-aux); padding: 2px 0; }
+.search-filters .filter-clear { font-size: var(--fs-aux); }
+.search-results-col { min-width: 0; }  /* min-width:0 để không tràn ở 1280px */
+/* Bộ lọc tìm kiếm: select/date trong rail rộng hết cột; chip lọc đang áp dụng. */
+.search-filters select, .search-filters input[type=date] { width: 100%; padding: 6px 8px; border: 1px solid var(--border); border-radius: 6px; font-size: var(--fs-aux); background: #fff; }
+.search-filters .filter-date { display: block; font-size: var(--fs-aux); color: var(--muted); margin-bottom: 6px; }
+.search-filters .filter-date input { margin-top: 2px; }
+.search-filters .filter-clear { display: inline-block; margin-top: 4px; }
+.filter-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 0 0 12px; }
+.filter-chip { display: inline-flex; align-items: center; gap: 6px; padding: 3px 10px; font-size: 12px; border-radius: 999px; border: 1px solid var(--masan-100); background: var(--masan-50); color: var(--masan-900); text-decoration: none; }
+.filter-chip:hover { background: var(--masan-100); text-decoration: none; }
+.filter-chip__x { font-size: 11px; color: var(--muted); }
+.filter-chip:hover .filter-chip__x { color: var(--danger); }
+
+/* ---- Chi tiết: đầu trang gom + hàng nút + cuối trang (Yêu cầu 17.2, 17.4) ---- */
+.detail-header { margin-bottom: var(--sp-4); }
+.detail-header h1 { margin-bottom: var(--sp-1); }
+.detail-header .doc-title { display: flex; flex-wrap: wrap; align-items: center; gap: var(--sp-2); margin: 0; }
+.detail-actions { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; margin-top: var(--sp-3); }
+.detail-alert-link { font-size: var(--fs-aux); margin: var(--sp-2) 0 0; }
+.detail-footer { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--sp-5); margin-top: var(--sp-5); }
+.detail-footer__block { background: var(--color-surface); border: 1px solid var(--color-border); border-radius: var(--radius); padding: var(--sp-4) var(--sp-5); box-shadow: var(--shadow-card); }
+.detail-footer__block h2 { margin-top: 0; }
+.detail-history, .detail-audit { list-style: none; margin: 0; padding: 0; font-size: var(--fs-aux); }
+.detail-history li, .detail-audit li { padding: var(--sp-1) 0; border-bottom: 1px solid var(--color-border); }
+.detail-history li:last-child, .detail-audit li:last-child { border-bottom: 0; }
+
+/* ================================================================
+ * Form đăng ký bước 2 — bố cục hai cột + checklist dính (Yêu cầu 18)
+ * ----------------------------------------------------------------
+ * .reg-layout: lưới hai cột, cột phải rộng 260px cho checklist; cột
+ * trái co giãn dùng minmax(0,1fr) để không tràn ngang ở 1280px (2.3).
+ * .reg-main bọc toàn bộ fieldset. .reg-checklist dính theo cuộn để
+ * luôn nhìn thấy (18.2). Các dòng checklist là liên kết mỏ neo cuộn
+ * tới đúng ô cần điền (18.3) — thuần HTML, không cần JS.
+ * ================================================================ */
+.reg-layout { display: grid; grid-template-columns: minmax(0,1fr) 260px; gap: var(--sp-5); align-items: start; }
+.reg-main { min-width: 0; }
+.reg-checklist { position: sticky; top: calc(var(--topbar-h) + var(--sp-4)); }
+.reg-checklist__title { font-size: var(--fs-subtle); margin: 0 0 var(--sp-2); }
+.reg-checklist__link { display: block; text-decoration: none; color: inherit; }
+
+/* ================================================================
+ * Màn hình xác nhận release — bố cục hai cột (Yêu cầu 19)
+ * ----------------------------------------------------------------
+ * .confirm-layout: lưới hai cột, trái là vùng xem tệp co giãn
+ * minmax(0,1fr) (không tràn ngang), phải 320px cho checklist + nút
+ * quyết định (19.1). .confirm-panel dính theo cuộn để luôn thấy các
+ * nút Xác nhận / Từ chối (19.1). .confirm-file là ô xem tệp; khi thiếu
+ * tệp hiển thị placeholder có viền. Tiêu đề nhóm .check-group__title
+ * tách trực quan TỰ ĐỘNG / TỰ ĐỐI CHIẾU (19.2). Ổ khoá 🔒 (.lock-glyph)
+ * cạnh mục khoá và .btn-diff nổi bật hơn hẳn (19.3). Giữ nguyên các lớp
+ * .check-item / .check-admin / .check-item--manual / .check-label.locked.
+ * ================================================================ */
+.confirm-layout { display: grid; grid-template-columns: minmax(0,1fr) 320px; gap: var(--sp-5); align-items: start; }
+.confirm-file { min-width: 0; border: 1px solid var(--border); border-radius: 8px; padding: var(--sp-4); background: var(--surface, #fff); }
+.confirm-file__title { font-size: var(--fs-subtle); font-weight: var(--fw-subtle); margin: 0 0 var(--sp-3); color: var(--muted); }
+.confirm-file__embed { width: 100%; height: 70vh; border: 1px solid var(--border); border-radius: 6px; }
+.confirm-file__link { margin: var(--sp-2) 0 0; }
+.confirm-file__placeholder { display: flex; align-items: center; justify-content: center; min-height: 40vh; border: 1px dashed var(--border); border-radius: 6px; color: var(--muted); text-align: center; padding: var(--sp-4); }
+.confirm-panel { position: sticky; top: calc(var(--topbar-h) + var(--sp-4)); min-width: 0; }
+/* Khối thông tin gọn trong panel phản hồi (receipt-respond). */
+.detail-meta { margin: 0 0 var(--sp-4); padding: var(--sp-3) var(--sp-4); border: 1px solid var(--border); border-radius: 8px; background: var(--surface, #fff); display: grid; gap: var(--sp-2); }
+.detail-meta > div { display: grid; grid-template-columns: 96px 1fr; gap: var(--sp-2); align-items: baseline; }
+.detail-meta dt { margin: 0; color: var(--muted); font-size: 12px; }
+.detail-meta dd { margin: 0; font-size: 14px; font-weight: 600; overflow-wrap: anywhere; }
+.check-group__title { font-size: var(--fs-subtle); font-weight: var(--fw-subtle); color: var(--muted); margin: var(--sp-4) 0 var(--sp-2); }
+.lock-glyph { margin: 0 4px; }
+
+/* ================================================================
+ * Trang trưng bày thành phần /design (Yêu cầu 21) — CHỈ trình bày
+ * ----------------------------------------------------------------
+ * Giãn cách giữa các mục thành phần bằng token khoảng cách. Không đổi
+ * hành vi, không phông web, không hoạt ảnh — thuần bố cục cho tài liệu
+ * sống và kiểm hồi quy thị giác (23.1–23.4).
+ * ================================================================ */
+.design-intro { color: var(--color-text-muted); margin: 0 0 var(--sp-4); max-width: 70ch; }
+.design-section { margin: 0 0 var(--sp-5); padding: 0 0 var(--sp-4); border-bottom: 1px solid var(--color-border); }
+.design-section:last-child { border-bottom: 0; }
+.design-section > h2 { margin: 0 0 var(--sp-3); }
+.design-section > h3 { margin: var(--sp-3) 0 var(--sp-2); }
+/* Hàng thành phần giãn theo nội dung, xuống dòng gọn khi hẹp (2.3, 2.6, 23.2) */
+.design-row { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; margin: 0 0 var(--sp-2); }
+.design-fields { display: grid; grid-template-columns: repeat(auto-fit, minmax(0, 240px)); gap: var(--sp-4); }
+
+/* ================================================================
+ * LỚP 5 — IN (@media print) — Lớp phủ bản in + tương phản B/W
+ * ----------------------------------------------------------------
+ * Khi in bản kiểm soát: ẩn khung/điều khiển màn hình, đưa lớp phủ bản
+ * in lên trên cùng trang giấy, và giữ trạng thái phân biệt được khi
+ * mất màu (in đen trắng) bằng viền.
+ * - Ẩn khung/điều khiển: .topbar, .sidebar, .phase-note, .btn, form.
+ * - .content bỏ đệm, nền trắng để tiết kiệm mực và rõ chữ.
+ * - .print-overlay hiển thị trên cùng (đã có viền nét đứt + nền xanh
+ *   rất nhạt từ khối cơ sở); QR giữ 120×120px (13.1); cảnh báo đỏ đậm
+ *   vẫn hiện (13.4).
+ * - Trạng thái: thêm viền 1px để phân biệt không phụ thuộc màu (2.2, 23.3);
+ *   giữ chữ nhãn hiển thị (không ẩn).
+ * ================================================================ */
+@media print {
+  /* Ẩn khung và điều khiển — chỉ còn nội dung + lớp phủ bản in */
+  .topbar, .sidebar, .phase-note, .btn, form { display: none; }
+
+  .content { padding: 0; }
+  body { background: #fff; }
+
+  /* Lớp phủ bản in lên trên cùng trang in (13.2) */
+  .print-overlay { display: block; margin: 0 0 var(--sp-4); }
+  /* Mã QR giữ tối thiểu 120×120px khi in (13.1) */
+  .print-overlay__qr { width: 120px; height: 120px; }
+  /* Dòng cảnh báo đỏ đậm vẫn hiển thị rõ (13.4) */
+  .print-overlay__warn { color: var(--status-error-fg); font-weight: 700; }
+
+  /* Trạng thái phân biệt được khi in đen trắng (2.2, 23.3):
+   * thêm viền để không chỉ dựa vào màu; chữ nhãn vẫn hiển thị. */
+  .status-label, .status { border: 1px solid #333; }
+}
+
+/* ================================================================
+ * LỚP MOBILE (responsive) — @media (max-width: 768px)
+ * ----------------------------------------------------------------
+ * TẤT CẢ quy tắc mobile nằm TRONG media query này (và khối ≤480px bên
+ * dưới). KHÔNG sửa bất kỳ quy tắc nền nào ở trên — desktop (>768px) giữ
+ * nguyên 100%. Chỉ BỔ SUNG, không đổi tên lớp.
+ *
+ * Phạm vi: layout chung (drawer + topbar thu gọn), home, search-results,
+ * catalog (bảng -> card dọc), detail, confirm. verify.eta KHÔNG đụng tới.
+ * Token tái dùng: --sidebar-w (240px), --topbar-h (56px).
+ * ================================================================ */
+@media (max-width: 768px) {
+  /* ---- Drawer điều hướng off-canvas (thuần CSS) ---- */
+  /* Công tắc ẩn nhưng vẫn truy cập được bằng bàn phím. */
+  .nav-toggle {
+    position: absolute;
+    width: 1px; height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    margin: 0;
+  }
+  /* Hamburger 44×44 chạm dễ, ba vạch ngang. */
+  .nav-hamburger {
+    display: inline-flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 5px;
+    width: 44px;
+    height: 44px;
+    padding: 0 10px;
+    cursor: pointer;
+    flex-shrink: 0;
+  }
+  .nav-hamburger span {
+    display: block;
+    height: 2px;
+    width: 100%;
+    background: var(--masan-800);
+    border-radius: 2px;
+  }
+
+  /* Sidebar 240px -> drawer trượt từ trái, ẩn mặc định. */
+  .app-shell { display: block; }
+  .sidebar {
+    position: fixed;
+    top: var(--topbar-h);
+    left: 0;
+    bottom: 0;
+    width: var(--sidebar-w);
+    max-width: 80vw;
+    transform: translateX(-100%);
+    transition: transform .2s ease;
+    z-index: 30;
+    overflow-y: auto;
+  }
+  #nav-toggle:checked ~ .app-shell .sidebar { transform: translateX(0); }
+
+  /* Lớp phủ mờ khi mở drawer; bấm (label) để đóng. */
+  .nav-overlay {
+    display: none;
+    position: fixed;
+    inset: var(--topbar-h) 0 0 0;
+    background: rgba(0, 0, 0, .4);
+    z-index: 20;
+  }
+  #nav-toggle:checked ~ .app-shell .nav-overlay { display: block; }
+
+  /* Nội dung chiếm trọn bề ngang khi sidebar rời khỏi dòng chảy. */
+  .content { padding: 20px 16px; }
+
+  /* ---- Topbar thu gọn: logo + hamburger + avatar; search xuống hàng riêng ---- */
+  .topbar { height: auto; padding: 8px 12px; }
+  .topbar-left { flex-wrap: wrap; gap: 10px; }
+  .brand-sub { display: none; }
+  /* Ô tìm kiếm trên topbar xuống hàng riêng, full-width. */
+  .topbar-left .search {
+    order: 3;
+    flex-basis: 100%;
+    max-width: none;
+  }
+  .topbar-right { gap: 8px; }
+  .topbar-right .user-name { display: none; }
+
+  /* ---- Trang chủ: tìm nhanh + khối việc full-width, dễ chạm ---- */
+  .quick-search { max-width: none; }
+  .quick-search form { flex-wrap: wrap; }
+  .quick-search input,
+  .quick-search button { width: 100%; min-height: 44px; }
+  .home-list li a { display: block; padding: 10px 0; }
+
+  /* ---- Tìm kiếm: hai cột -> một cột; bộ lọc gập mặc định đóng ---- */
+  .search-layout { display: block; }
+  .search-filters { margin-bottom: var(--sp-4); }
+  /* Nhãn tóm tắt bấm được, có mũi chỉ báo ▸/▾. */
+  .filters-summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    cursor: pointer;
+    padding: 10px 12px;
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius);
+  }
+  .filters-summary h2 { margin: 0; }
+  .filters-summary::after { content: "▸"; color: var(--color-text-muted); }
+  #filters-toggle:checked ~ .filters-summary::after { content: "▾"; }
+  /* Mặc định đóng: ẩn fieldset; mở khi công tắc được tích. */
+  .search-filters fieldset { display: none; }
+  #filters-toggle:checked ~ fieldset { display: block; margin-top: var(--sp-3); }
+  /* Thanh tìm xếp dọc, control full-width dễ chạm. */
+  .search-bar-full { flex-wrap: wrap; }
+  .search-bar-full input[type=search],
+  .search-bar-full button { width: 100%; min-height: 44px; }
+  .search-bar-full .hist-toggle { white-space: normal; }
+
+  /* ---- Danh mục: form lọc xếp dọc + bảng -> card dọc ---- */
+  /* Form lọc dài xếp dọc, mỗi control full-width (chỉ trang catalog). */
+  .catalog-filters { display: flex; flex-direction: column; align-items: stretch; }
+  .catalog-filters label { display: block; }
+  .catalog-filters label input,
+  .catalog-filters label select,
+  .catalog-filters > input,
+  .catalog-filters > select,
+  .catalog-filters button {
+    width: 100%;
+    min-height: 44px;
+    box-sizing: border-box;
+  }
+
+  /* Bảng catalog -> card dọc (chỉ .catalog-table, không áp dụng bảng khác). */
+  .catalog-table { border: 0; box-shadow: none; background: transparent; }
+  .catalog-table thead { display: none; }
+  .catalog-table tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--masan-100);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 12px;
+    padding: 4px 0;
+  }
+  .catalog-table td {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 12px;
+    padding: 8px 14px;
+    border-bottom: 1px solid var(--masan-50);
+  }
+  .catalog-table tr td:last-child { border-bottom: 0; }
+  /* Nhãn cột lấy từ data-label, in đậm nhạt bên trái. */
+  .catalog-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--masan-text-secondary);
+    flex-shrink: 0;
+  }
+  /* Giá trị canh phải, xuống dòng khi dài. */
+  .catalog-table td { text-align: right; }
+  /* catalog-card-nowrap-fix: chong tran ngang tren mobile */
+  .catalog-table td { flex-wrap: wrap; min-width: 0; }
+  .catalog-table td::before { max-width: 45%; overflow-wrap: anywhere; }
+  .catalog-table td > * { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+  .catalog-table td a { white-space: normal; }
+  /* Hàng rỗng (colspan, data-label="") hiển thị thành dòng thường, không nhãn. */
+  .catalog-table td[data-label=""] { display: block; text-align: left; }
+  .catalog-table td[data-label=""]::before { content: none; }
+
+  /* ---- Chi tiết: lưới -> một cột (main trước), nút full-width ---- */
+  .detail-grid { grid-template-columns: 1fr; }
+  .detail-footer { grid-template-columns: 1fr; }
+  .detail-actions { flex-direction: column; align-items: stretch; }
+  .detail-actions .btn-diff,
+  .detail-actions .btn-report,
+  .detail-actions button { width: 100%; min-height: 44px; }
+  /* Nút "Xác nhận đã đọc" full-width dễ chạm. Form xác nhận là anh em
+     cấp cao, có thể bị banner trạng thái chèn giữa nên không dùng bộ chọn
+     anh em kề; nhắm thẳng vào form theo action để luôn khớp. */
+  form[action$="/acknowledge"] button.primary { width: 100%; min-height: 44px; }
+  /* Ma trận / form nội dòng không tràn ngang. */
+  .matrix-list .inline-form,
+  .detail-side .inline-form { flex-direction: column; align-items: stretch; }
+  .matrix-list .inline-form select,
+  .matrix-list .inline-form input,
+  .matrix-list .inline-form button,
+  .detail-side .inline-form select,
+  .detail-side .inline-form input,
+  .detail-side .inline-form button { width: 100%; min-height: 40px; }
+
+  /* ---- Xác nhận: hai cột -> một cột; panel bỏ sticky; nút xếp dọc ---- */
+  .confirm-layout { grid-template-columns: 1fr; }
+  .confirm-panel,
+  .reg-checklist { position: static; }
+  .confirm-file__embed { height: 60vh; }
+  /* Nút Xác nhận + form Từ chối xếp dọc, full-width dễ chạm. */
+  .confirm-panel > form > button.primary { width: 100%; min-height: 44px; }
+  .reject-form input,
+  .reject-form button[type=submit] { width: 100%; min-height: 44px; }
+  .reject-form button[type=submit] { align-self: stretch; justify-content: center; }
+}
+
+/* ================================================================
+ * LỚP MOBILE hẹp — @media (max-width: 480px)
+ * Tinh chỉnh chống tràn ngang ở ~360px. Chỉ BỔ SUNG, tuỳ chọn.
+ * ================================================================ */
+@media (max-width: 480px) {
+  .content { padding: 16px 12px; }
+  .topbar { padding: 8px 10px; }
+  /* data-label dài: cho phép xuống dòng để không tràn ở 360px. */
+  .catalog-table td { flex-wrap: wrap; gap: 2px 12px; }
+  .result-card { padding: var(--sp-2); }
+}
+
+
+/* ===== Chi tiết tài liệu: PDF toàn chiều rộng (Hướng 1) ===== */
+.detail-info-bar { display: flex; flex-wrap: wrap; gap: 8px 28px; margin: 0 0 16px;
+  padding: 12px 16px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; }
+.detail-info-bar > div { display: flex; flex-direction: column; gap: 2px; }
+.detail-info-bar dt { color: var(--muted); font-size: 12px; margin: 0; }
+.detail-info-bar dd { margin: 0; font-size: 14px; font-weight: 600; }
+.pdf-viewer { margin-bottom: 16px; }
+.pdf-frame { width: 100%; height: 80vh; border: 1px solid var(--border); border-radius: 8px; background: #fff; }
+.pdf-fallback { margin: 8px 0 0; font-size: 13px; }
+.detail-panel { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 10px; background: var(--surface); }
+.detail-panel > summary { cursor: pointer; padding: 12px 16px; font-weight: 600; list-style: none; }
+.detail-panel > summary::-webkit-details-marker { display: none; }
+.detail-panel > summary::before { content: "\25B8"; display: inline-block; margin-right: 8px; color: var(--muted); transition: transform .15s; }
+.detail-panel[open] > summary::before { transform: rotate(90deg); }
+.detail-panel > *:not(summary) { padding: 0 16px 14px; }
+@media (max-width: 768px) { .pdf-frame { height: 60vh; } }
+
+
+/* Cột thao tác trong bảng: giãn cách các link hành động */
+.row-actions a { margin-right: 12px; white-space: nowrap; }
+.row-actions a:last-child { margin-right: 0; }
+
+
+/* ===== Trang báo bất thường site (issue-reports) ===== */
+.report-list { display: flex; flex-direction: column; gap: 16px; margin-top: 16px; }
+.report-card {
+  background: var(--surface); border: 1px solid var(--masan-100);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  padding: 16px 18px;
+}
+.report-card__head { display: flex; flex-wrap: wrap; align-items: baseline; gap: 8px; margin-bottom: 2px; }
+.report-card__doc { font-weight: 700; color: var(--masan-800); text-decoration: none; }
+.report-card__doc:hover { text-decoration: underline; }
+.report-card__title { font-weight: 600; }
+.report-card__meta { font-size: 12px; color: var(--masan-text-secondary, #667); margin-bottom: 10px; }
+.report-card__note {
+  margin: 0 0 14px; padding: 10px 14px;
+  background: var(--masan-25, #f6f8fb); border-left: 3px solid var(--masan-200, #bcd);
+  border-radius: 4px; color: var(--color-text, #223); overflow-wrap: anywhere;
+}
+/* Hai hành động: lưới 2 cột desktop, xếp dọc mobile */
+.report-card__actions { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+.report-form {
+  display: flex; flex-direction: column; gap: 8px;
+  padding: 12px 14px; border: 1px solid var(--masan-100); border-radius: var(--radius-md);
+  background: var(--masan-25, #f6f8fb);
+}
+.report-form__title { font-weight: 600; font-size: 13px; color: var(--masan-800); }
+.report-form label { display: flex; flex-direction: column; gap: 4px; font-size: 13px; }
+.report-form select, .report-form input {
+  padding: 8px 10px; border: 1px solid var(--border, #cdd); border-radius: 6px; width: 100%; box-sizing: border-box;
+}
+.report-form button { align-self: flex-start; }
+@media (max-width: 768px) {
+  .report-card__actions { grid-template-columns: 1fr; }
+  .report-form button { align-self: stretch; min-height: 44px; }
+}
+
+
+/* ============================================================
+   Responsive dùng chung (Task 1) — bảng -> thẻ, form/nút vừa màn.
+   Áp cho MỌI bảng gắn class .responsive-table (td cần data-label).
+   ============================================================ */
+@media (max-width: 768px) {
+  .responsive-table { border: 0; box-shadow: none; background: transparent; }
+  .responsive-table thead { display: none; }
+  .responsive-table tr {
+    display: block;
+    background: var(--surface);
+    border: 1px solid var(--masan-100);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-card);
+    margin-bottom: 12px;
+    padding: 4px 0;
+  }
+  .responsive-table td {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: space-between;
+    align-items: baseline;
+    gap: 8px 12px;
+    min-width: 0;
+    padding: 8px 14px;
+    text-align: right;
+    border-bottom: 1px solid var(--masan-50);
+  }
+  .responsive-table tr td:last-child { border-bottom: 0; }
+  .responsive-table td::before {
+    content: attr(data-label);
+    font-weight: 600;
+    color: var(--masan-text-secondary, #556);
+    flex-shrink: 0;
+    max-width: 45%;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+  .responsive-table td > * { min-width: 0; overflow-wrap: anywhere; word-break: break-word; }
+  .responsive-table td a { white-space: normal; }
+  /* Hàng rỗng (colspan, data-label="") -> dòng thường, không nhãn. */
+  .responsive-table td[data-label=""] { display: block; text-align: left; }
+  .responsive-table td[data-label=""]::before { content: none; }
+
+  /* Form/panel vừa màn hẹp: trường rộng 100%, cao chạm được. */
+  .reg-form label input, .reg-form label select, .reg-form label textarea,
+  .reg-form > label input, .reg-form > label select, .reg-form > label textarea,
+  .role-form input, .role-form select,
+  .report-form input, .report-form select,
+  .reject-form input, .reject-form select, .reject-form textarea {
+    width: 100%; box-sizing: border-box; min-height: 44px;
+  }
+  /* Nút hành động chính đủ lớn để chạm. */
+  .reg-form button[type="submit"],
+  .role-form button[type="submit"],
+  button.primary { min-height: 44px; }
+  /* Khoảng cách link hành động trong một ô (tránh chạm nhầm). */
+  .row-actions a { display: inline-block; padding: 6px 0; }
+}
+
+/* ===== Vùng toast cảnh báo tại chỗ (friendly-error-messages) ===== */
+.toast-zone { position: fixed; right: 16px; bottom: 16px; z-index: 1000;
+  display: flex; flex-direction: column; gap: 8px; max-width: min(92vw, 420px); }
+@media (max-width: 768px) { .toast-zone { left: 12px; right: 12px; bottom: 12px; max-width: none; } }
+
+/* ================================================================
+ * REDESIGN lớp 2 — Page header + thanh nút hành động theo mục đích.
+ * Học từ digi-office: tiêu đề + mô tả bên trái, toolbar nút bên phải;
+ * nút hành động có màu + icon theo nhóm mục đích (tái dùng token sẵn có).
+ * ================================================================ */
+.page-header {
+  display: flex; flex-wrap: wrap; gap: var(--sp-3) var(--sp-4);
+  align-items: flex-end; justify-content: space-between;
+  padding-bottom: var(--sp-3); margin-bottom: var(--sp-4);
+  border-bottom: 1px solid var(--color-border);
+}
+.page-header__titles { min-width: 0; }
+.page-header__titles h1 { margin: 0; color: var(--masan-900); }
+.page-header__desc { margin: 4px 0 0; color: var(--muted); font-size: var(--fs-aux); }
+.toolbar { display: flex; flex-wrap: wrap; gap: var(--sp-2); align-items: center; }
+/* Nút hành động: dáng chung, icon + nhãn, màu theo biến thể mục đích. */
+.btn-action {
+  display: inline-flex; align-items: center; gap: 6px;
+  padding: 7px 13px; border-radius: var(--radius-md); cursor: pointer;
+  font-size: 13px; font-weight: 600; line-height: 1; white-space: nowrap;
+  border: 1px solid transparent; text-decoration: none; background: #fff;
+}
+.btn-action svg { width: 16px; height: 16px; }
+.btn-action:hover { text-decoration: none; }
+/* Biến thể: primary (xanh brand đặc), success (tạo/duyệt), info (xuất/chia sẻ), neutral (phụ). */
+.btn-action--primary { background: var(--masan-700); color: #fff; border-color: var(--masan-700); }
+.btn-action--primary:hover { background: var(--masan-800); border-color: var(--masan-800); }
+.btn-action--success { background: var(--status-success-bg); color: #1A7A3A; border-color: #BCEBCB; }
+.btn-action--success:hover { background: #D6F3DF; }
+.btn-action--info { background: var(--masan-50); color: var(--masan-700); border-color: var(--masan-100); }
+.btn-action--info:hover { background: var(--masan-100); }
+.btn-action--neutral { background: #fff; color: var(--color-text); border-color: var(--color-border); }
+.btn-action--neutral:hover { background: var(--masan-25); }
+.btn-action--danger { background: var(--status-error-bg); color: var(--status-error-fg); border-color: #F6C9CE; }
+.btn-action--danger:hover { background: #FBDBDE; }
+@media (max-width: 768px) {
+  .page-header { align-items: stretch; }
+  .toolbar { width: 100%; }
+  .toolbar .btn-action { flex: 1; justify-content: center; min-height: 40px; }
+}
+
+/* Dải lọc nhanh (preset) trên danh mục: link dạng pill nhẹ, tách khỏi nút hành động. */
+.quick-filters { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: var(--sp-3); }
+.quick-filters a { font-size: var(--fs-aux); padding: 4px 11px; border-radius: 999px; border: 1px solid var(--color-border); color: var(--masan-700); background: #fff; }
+.quick-filters a:hover { background: var(--masan-50); text-decoration: none; }
+
+/* Ô trạng thái trong bảng: pill + mốc thời gian mờ (học từ digi-office). */
+.cell-status { display: inline-flex; flex-direction: column; gap: 2px; }
+.cell-status__time { font-size: var(--fs-small); color: var(--muted); }
+
+/* ================================================================
+ * REDESIGN lớp 4 — Thanh lọc dạng thẻ (filter-bar) cho trang danh mục.
+ * Thẻ trắng gọn, các trường lọc xếp lưới tự co; hàng nút tách dưới cùng.
+ * Áp CÓ CHỌN LỌC (chỉ form lọc), tránh bọc mọi thứ thành card giống nhau.
+ * ================================================================ */
+.filter-bar {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: var(--sp-3) var(--sp-4); align-items: end;
+  background: var(--surface); border: 1px solid var(--masan-100);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  padding: var(--sp-4); margin-bottom: var(--sp-4);
+}
+.filter-bar > label {
+  display: flex; flex-direction: column; gap: 4px;
+  font-size: var(--fs-aux); color: var(--muted); min-width: 0;
+}
+.filter-bar > label input, .filter-bar > label select {
+  padding: 7px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  font-size: 13px; background: #fff; color: var(--color-text); width: 100%;
+}
+.filter-bar > label input:focus, .filter-bar > label select:focus {
+  border-color: var(--masan-600); box-shadow: 0 0 0 3px rgba(0,119,230,.12); outline: none;
+}
+/* Hàng nút chiếm trọn chiều ngang, căn phải. */
+.filter-bar__actions { grid-column: 1 / -1; display: flex; gap: var(--sp-2); justify-content: flex-end; }
+@media (max-width: 768px) {
+  .filter-bar { grid-template-columns: 1fr 1fr; }
+  .filter-bar__actions { flex-direction: column; }
+  .filter-bar__actions .btn-action { width: 100%; justify-content: center; min-height: 40px; }
+}
+
+/* Mục tiêu neo (anchor) từ nút toolbar: chừa khoảng dưới topbar dính + cuộn mượt. */
+html { scroll-behavior: smooth; }
+#add-user, #tao-goi { scroll-margin-top: calc(var(--topbar-h) + var(--sp-4)); }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto; } }
+
+/* Nhãn + select chọn đơn vị cụ thể (BU/Site/Dept) trong rail lọc tìm kiếm. */
+.search-filters .filter-select-label { display: block; font-size: var(--fs-aux); color: var(--muted); margin-bottom: 8px; }
+.search-filters .filter-select-label select { margin-top: 3px; }
+
+/* ================================================================
+ * REDESIGN — Bố cục 3 màn quản trị: panel hành động (gán/tạo) bên trái
+ * dính theo cuộn, dữ liệu (bảng/danh sách) bên phải. Đưa thao tác lên đầu.
+ * ================================================================ */
+.admin-layout { display: grid; grid-template-columns: 320px minmax(0, 1fr); gap: var(--sp-5); align-items: start; }
+.admin-panel {
+  position: sticky; top: calc(var(--topbar-h) + var(--sp-4));
+  background: var(--surface); border: 1px solid var(--masan-100);
+  border-radius: var(--radius-lg); box-shadow: var(--shadow-card);
+  padding: var(--sp-4); min-width: 0;
+}
+.admin-panel__title { font-size: var(--fs-section); font-weight: var(--fw-section); margin: 0 0 var(--sp-3); color: var(--masan-900); }
+.admin-form { display: flex; flex-direction: column; gap: var(--sp-3); }
+.admin-form > label { display: flex; flex-direction: column; gap: 4px; font-size: var(--fs-aux); color: var(--muted); }
+.admin-form input, .admin-form select {
+  width: 100%; padding: 8px 10px; border: 1px solid var(--color-border); border-radius: var(--radius-md);
+  font-size: 13px; background: #fff; color: var(--color-text);
+}
+.admin-form input:focus, .admin-form select:focus {
+  border-color: var(--masan-600); box-shadow: 0 0 0 3px rgba(0,119,230,.12); outline: none;
+}
+.admin-form button[type=submit] { align-self: flex-start; }
+/* Nhiều panel xếp dọc (vd org 3 khối trong cùng một cột trái). */
+.admin-panel + .admin-panel { margin-top: var(--sp-4); }
+.admin-data { min-width: 0; }
+.admin-data__subtitle { font-size: var(--fs-subtle); font-weight: var(--fw-subtle); color: var(--masan-900); margin: 0 0 var(--sp-2); }
+@media (max-width: 900px) {
+  .admin-layout { grid-template-columns: 1fr; }
+  .admin-panel { position: static; }
+  .admin-form button[type=submit] { width: 100%; min-height: 44px; }
+}
+
+/* Khối tổ chức: form thêm/gán lên đầu, danh sách gọn phía dưới. */
+.org-col .admin-form { margin-bottom: var(--sp-3); }
+.org-col__subform { padding-top: var(--sp-3); border-top: 1px dashed var(--color-border); }
+.org-col__count { font-size: var(--fs-aux); color: var(--muted); margin: var(--sp-3) 0 var(--sp-1); font-weight: 600; }
+.org-col h2 { color: var(--masan-900); }
+
+/* ================================================================
+ * FROSTED-GLASS — mặt kính dùng chung (ÁP DỤNG CUỐI; chỉ BỔ SUNG, không đổi markup/class).
+ * Khối này ĐẶT Ở CUỐI FILE — SAU mọi quy tắc nền per-component của các lớp
+ * mặt phẳng (vd .topbar/.login-card/.data-table/.detail-* đặt `background:
+ * var(--surface)` phía trên) — nên theo thứ tự nguồn (cùng độ đặc hiệu 0,0,1,0)
+ * nó THẮNG và nền trong mờ + blur + viền + bóng kính mới thực sự hiển thị.
+ * Thứ tự khai báo nền CỐ Ý: fallback đặc TRƯỚC, lớp trong mờ SAU, để
+ * trình duyệt thiếu backdrop-filter rơi về nền đặc gần trắng (đọc rõ).
+ * Mỗi lớp vẫn giữ border-radius/padding riêng ở khối gốc; ở đây phủ nền
+ * kính, blur, viền sáng và bóng lớp (ghi đè border/box-shadow per-component).
+ * ================================================================ */
+.topbar, .login-card, .home-block, .pkg-card, .org-col, .detail-main, .detail-side,
+.add-user-card, .metric-card, .qa-answer, .no-results, .data-table, .suggest-list,
+.suggest-empty, .card, .report-card, .detail-footer__block, .detail-info-bar, .detail-panel,
+.filter-bar, .admin-panel, .empty-state, .confirm-file, .detail-meta, .report-form {
+  background-color: var(--glass-bg-solid);           /* FALLBACK đặc (khai báo trước) */
+  background-color: var(--glass-bg);                  /* lớp trong mờ */
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--glass-shadow);
+}
+/* Mặt cần tương phản chữ cao hơn: login, bảng dữ liệu, dropdown gợi ý. */
+.login-card, .data-table, .suggest-list, .suggest-empty {
+  background-color: var(--glass-bg-solid);           /* FALLBACK đặc (khai báo trước) */
+  background-color: var(--glass-bg-strong);
+}
+/* .topbar có sẵn border-bottom riêng — không nhân đôi: bỏ viền kính vòng quanh,
+ * giữ đường kẻ dưới; vẫn hưởng nền kính + blur + bóng ở trên. Đặt SAU nhóm kính
+ * để thắng viền, và SAU quy tắc .topbar gốc để giữ border-bottom nhất quán. */
+.topbar { border: 0; border-bottom: 1px solid var(--masan-100); }
+
+/* ================================================================
+ * FROSTED-GLASS — FALLBACK khả truy cập.
+ * (1) Người dùng chọn giảm trong suốt: ép mặt kính về nền ĐẶC, bỏ blur.
+ * (2) Trình duyệt KHÔNG hỗ trợ backdrop-filter: ép về nền đặc (nền đặc đã
+ *     khai báo trước ở nhóm kính phủ phần lớn; khối này làm tường minh và
+ *     còn dẹp cả trường hợp "trong mờ nhưng không blur" về nền đặc).
+ * Giữ danh sách lớp đồng bộ với nhóm kính ở đầu file + .sidebar.
+ * ================================================================ */
+@media (prefers-reduced-transparency: reduce) {
+  .topbar, .login-card, .home-block, .pkg-card, .org-col, .detail-main, .detail-side,
+  .add-user-card, .metric-card, .qa-answer, .no-results, .data-table, .suggest-list,
+  .suggest-empty, .card, .report-card, .detail-footer__block, .detail-info-bar, .detail-panel,
+  .filter-bar, .admin-panel, .empty-state, .confirm-file, .detail-meta, .report-form {
+    background-color: var(--glass-bg-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+  .sidebar {
+    background-color: var(--glass-sidebar-bg-solid);
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+}
+@supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
+  .topbar, .login-card, .home-block, .pkg-card, .org-col, .detail-main, .detail-side,
+  .add-user-card, .metric-card, .qa-answer, .no-results, .data-table, .suggest-list,
+  .suggest-empty, .card, .report-card, .detail-footer__block, .detail-info-bar, .detail-panel,
+  .filter-bar, .admin-panel, .empty-state, .confirm-file, .detail-meta, .report-form {
+    background-color: var(--glass-bg-solid);
+  }
+  .sidebar {
+    background-color: var(--glass-sidebar-bg-solid);
+  }
+}

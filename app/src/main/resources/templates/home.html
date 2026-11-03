@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Trang chủ — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<section class="home">
+  <div class="page-header">
+    <div class="page-header__titles">
+      <h1 th:text="${user != null and user.fullName != null} ? 'Xin chào, ' + ${user.fullName} : 'Xin chào'">Xin chào</h1>
+      <p class="page-header__desc">Hôm nay bạn cần làm gì. Các khối việc không có sẽ tự ẩn.</p>
+    </div>
+  </div>
+
+  <div class="quick-search">
+    <form th:action="@{/documents}" method="get" role="search">
+      <input type="search" name="q" placeholder="Tìm tài liệu…" aria-label="Tìm kiếm nhanh">
+      <button type="submit">Mở danh mục</button>
+    </form>
+  </div>
+
+  <div class="home-block" th:if="${contentErrorMine != null and !contentErrorMine.isEmpty()}">
+    <div class="alert-banner alert-banner--warning">
+      <strong th:text="'Site báo SAI NỘI DUNG sau khi đã áp dụng (' + ${contentErrorMine.size()} + ').'">Site báo sai nội dung.</strong>
+      Cần thu hồi và ban hành phiên bản mới gấp. Các site đang dùng bản này nên ngừng sử dụng ngay.
+    </div>
+    <ul class="home-list">
+      <li th:each="r : ${contentErrorMine}">
+        <a th:href="@{/my-documents/{id}/issuance(id=${r.versionId})}" th:text="${r.docId} + ' v' + ${r.versionNo} + ' — ' + ${r.title}">tài liệu</a>
+        <span class="status status-thu_hoi">sai nội dung sau áp dụng</span>
+      </li>
+    </ul>
+  </div>
+
+  <div class="home-block" th:if="${pendingReceipts != null and !pendingReceipts.isEmpty()}">
+    <h2 th:text="'Chờ site bạn phản hồi (' + ${pendingReceipts.size()} + ')'">Chờ site bạn phản hồi</h2>
+    <ul class="home-list">
+      <li th:each="r : ${pendingReceipts}">
+        <a th:href="@{/site-receipts/{id}(id=${r.receiptId})}" th:text="${r.docId} + ' v' + ${r.versionNo} + ' — ' + ${r.title}">tài liệu</a>
+        <span class="muted" th:text="' · site ' + ${r.siteCode}"></span>
+        <span th:if="${r.otherRejectType == 'sai_noi_dung'}"> · <span class="status status-thu_hoi">site khác báo sai nội dung</span></span>
+      </li>
+    </ul>
+    <p><a th:href="@{/site-receipts}" class="btn-link">Xem tất cả</a></p>
+  </div>
+
+  <div class="home-block" th:if="${rejectedMine != null and !rejectedMine.isEmpty()}">
+    <h2 th:text="'Tài liệu của bạn bị site báo sai sót (' + ${rejectedMine.size()} + ')'">Tài liệu bị báo sai sót</h2>
+    <ul class="home-list">
+      <li th:each="r : ${rejectedMine}">
+        <a th:href="@{/my-documents/{id}/issuance(id=${r.versionId})}" th:text="${r.docId} + ' v' + ${r.versionNo} + ' — ' + ${r.title}">tài liệu</a>
+      </li>
+    </ul>
+  </div>
+
+  <p class="build-note"
+     th:if="${(pendingReceipts == null or pendingReceipts.isEmpty()) and (rejectedMine == null or rejectedMine.isEmpty()) and (contentErrorMine == null or contentErrorMine.isEmpty())}">
+    Không có việc nào cần bạn xử lý hôm nay.
+  </p>
+</section>
+</div>
+</body>
+</html>

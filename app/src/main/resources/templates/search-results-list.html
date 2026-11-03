@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<body>
+<div>
+  <p class="result-count muted" th:if="${q == null or q.isEmpty()}">Nhập từ khoá để tìm số hiệu, tiêu đề hoặc nội dung tài liệu.</p>
+  <div class="empty-state" th:if="${q != null and !q.isEmpty() and hits.isEmpty()}">
+    <p class="empty-state__reason" th:text="'Không tìm thấy kết quả cho &quot;' + ${q} + '&quot; với bộ lọc hiện tại. Thử bỏ bớt lọc hoặc bật &quot;Bao gồm bản lịch sử&quot;.'">Không có kết quả</p>
+    <a class="empty-state__action" th:href="@{/search(q=${q})}">Bỏ lọc, giữ từ khoá</a>
+  </div>
+  <th:block th:if="${q != null and !q.isEmpty() and !hits.isEmpty()}">
+    <p class="result-count" th:text="${hits.size()} + ' kết quả'">kết quả</p>
+    <ul class="result-list">
+      <li class="result-card" th:each="h : ${hits}"
+          th:classappend="${h.status != 'hieu_luc' and h.status != 'da_ban_hanh'} ? ' result-card--historical' : ''">
+        <div class="result-card__line1">
+          <a th:href="@{/documents/{id}(id=${h.versionId})}"><strong th:text="${h.docId}">doc</strong> <span th:text="'— ' + ${h.title}"></span></a>
+          <span th:classappend="'status-label status-label--' + ${h.status}" th:text="${labels.docStatusLabel(h.status)}">trạng thái</span>
+          <span th:if="${h.scopeLevel}" th:classappend="'scope-label scope-label--' + ${h.scopeLevel}" th:text="${labels.scopeLabel(h.scopeLevel)}">phạm vi</span>
+        </div>
+        <div class="result-card__line2">
+          <span th:text="'Phiên bản ' + ${h.versionNo}">PB</span>
+          <span th:if="${h.effectiveDate}" th:text="' · Hiệu lực ' + ${#strings.substring(h.effectiveDate,0,T(java.lang.Math).min(10,h.effectiveDate.length()))}"></span>
+          <span th:if="${h.departmentName}" th:text="' · ' + ${h.departmentName}"></span>
+        </div>
+        <div class="result-card__snippet" th:if="${h.matchLevel == 'section' and h.snippet}">
+          <strong th:text="${h.sectionCode} + ' ' + ${h.sectionTitle} + ':'">mục</strong> <span class="hl" th:text="${h.snippet}"></span>
+        </div>
+        <div class="result-card__snippet" th:if="${h.matchLevel == 'fulltext' and h.snippet}">
+          <span class="hl" th:text="${h.snippet}"></span>
+        </div>
+      </li>
+    </ul>
+  </th:block>
+</div>
+</body>
+</html>

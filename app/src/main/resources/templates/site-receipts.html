@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Chờ site phản hồi — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Chờ site phản hồi</h1>
+  </div>
+</div>
+<div class="alert-banner alert-banner--info" th:if="${notControl}">
+  <strong>Thông tin:</strong> Bạn chưa được gán vai Kiểm soát tài liệu cho site nào. Liên hệ quản trị để được cấp quyền.
+</div>
+<th:block th:unless="${notControl}">
+<p class="muted">Tài liệu đã ban hành tới site bạn phụ trách. Xem thông tin đăng ký và nội dung, rồi xác nhận tiếp nhận hoặc từ chối nếu phát hiện sai sót.</p>
+<table class="data-table responsive-table">
+  <thead><tr><th>Số hiệu tài liệu</th><th>Phiên bản</th><th>Tiêu đề</th><th>Site</th><th>Cảnh báo</th><th>Thao tác</th></tr></thead>
+  <tbody>
+    <tr th:each="r : ${rows}">
+      <td data-label="Số hiệu tài liệu" th:text="${r.docId}">doc</td>
+      <td data-label="Phiên bản" th:text="${r.versionNo}">1</td>
+      <td data-label="Tiêu đề" th:text="${r.title}">title</td>
+      <td data-label="Site" th:text="${r.siteCode}">site</td>
+      <td data-label="Cảnh báo">
+        <span th:if="${r.otherRejectType == 'sai_noi_dung'}" class="status status-thu_hoi">Site khác báo sai nội dung</span>
+        <span th:if="${r.otherRejectType == 'sai_dang_ky'}" class="muted">Site khác báo sai đăng ký</span>
+      </td>
+      <td data-label="Thao tác"><a th:href="@{/site-receipts/{id}(id=${r.receiptId})}" class="btn-link">Mở phản hồi</a></td>
+    </tr>
+    <tr th:if="${rows.isEmpty()}"><td colspan="6" data-label="">Không có tài liệu nào chờ site bạn phản hồi.</td></tr>
+  </tbody>
+</table>
+<h2 th:text="'Tài liệu bị thu hồi (' + ${recalledDocs.size()} + ')'">Tài liệu bị thu hồi</h2>
+<p class="muted">Tài liệu đã phát hành tới site bạn phụ trách và bị người đăng ký thu hồi. Ngừng sử dụng và thu hồi bản in nếu có.</p>
+<table class="data-table responsive-table">
+  <thead><tr><th>Số hiệu tài liệu</th><th>Tiêu đề</th><th>Lý do thu hồi</th><th>Thu hồi lúc</th></tr></thead>
+  <tbody>
+    <tr th:each="d : ${recalledDocs}">
+      <td data-label="Số hiệu tài liệu" th:text="${d.docId} + ' v' + ${d.versionNo}">doc</td>
+      <td data-label="Tiêu đề" th:text="${d.title}">title</td>
+      <td data-label="Lý do thu hồi" th:text="${d.recallReason} ?: ''"></td>
+      <td data-label="Thu hồi lúc" th:text="${d.recalledAt != null} ? ${#strings.replace(#strings.substring(d.recalledAt,0,T(java.lang.Math).min(16,d.recalledAt.length())),'T',' ')} : ''"></td>
+    </tr>
+    <tr th:if="${recalledDocs.isEmpty()}"><td colspan="4" data-label="">Không có tài liệu nào bị thu hồi ở site bạn phụ trách.</td></tr>
+  </tbody>
+</table>
+</th:block>
+</div>
+</body>
+</html>

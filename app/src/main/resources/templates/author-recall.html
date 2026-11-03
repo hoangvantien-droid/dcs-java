@@ -1,0 +1,28 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Thu hồi tài liệu — DCS</title></head>
+<body>
+<div layout:fragment="content" th:with="v=${v},t=${tally}">
+<h1 th:text="'Thu hồi: ' + ${v.docId} + ' v' + ${v.versionNo}">Thu hồi</h1>
+<div class="login-error" th:if="${error}" th:text="${error}">Lỗi</div>
+<div class="alert-banner alert-banner--warning"><strong>Thu hồi phiên bản:</strong> Dùng khi sai nội dung hoặc cần làm lại. Sau khi thu hồi, đăng ký lại phiên bản mới (chọn bản này làm bản gốc ở màn Đăng ký) để ban hành thay thế.</div>
+<p class="muted" th:text="'Tác động: Chấp nhận ' + ${t.accepted} + ' · Từ chối ' + ${t.rejected} + ' · Chờ ' + ${t.pending} + ' · Tổng ' + ${t.total} + ' site.'">Tác động</p>
+<div class="alert-banner alert-banner--warning" th:if="${t.accepted > 0}">
+  <strong>Cảnh báo:</strong>
+  <span th:text="'CÓ ' + ${t.accepted} + ' SITE ĐÃ CHẤP NHẬN/ÁP DỤNG. Thu hồi sẽ làm tài liệu mất hiệu lực tại các site đó — cân nhắc ra phiên bản mới thay thế thay vì thu hồi trống.'"></span>
+</div>
+<form method="post" th:action="@{/my-documents/{id}/recall(id=${v.versionId})}" class="reg-form">
+  <fieldset>
+    <legend>Lý do thu hồi</legend>
+    <label>Lý do <span class="req">*</span>
+      <textarea name="reason" rows="3" required placeholder="Nêu rõ lý do thu hồi để lưu vết"></textarea>
+    </label>
+  </fieldset>
+  <button type="submit" class="btn-diff">Thu hồi tài liệu</button>
+</form>
+<p><a th:href="@{/my-documents/{id}/issuance(id=${v.versionId})}">← Về tình trạng ban hành</a></p>
+</div>
+</body>
+</html>

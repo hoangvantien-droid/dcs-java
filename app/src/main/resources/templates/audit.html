@@ -1,0 +1,39 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Ghi vết — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Ghi vết (append-only)</h1>
+    <p class="page-header__desc">Bản ghi vết không sửa, không xoá — kể cả Super Admin. Trả lời "ai đã làm gì, khi nào".</p>
+  </div>
+</div>
+<form method="get" th:action="@{/audit}" class="inline-form">
+  <input name="object_id" placeholder="Mã đối tượng (version_id, doc_id…)" th:value="${filter['object_id']} ?: ''">
+  <select name="event_type">
+    <option value="">-- mọi loại sự kiện --</option>
+    <option th:each="e : ${eventTypes}" th:value="${e}" th:selected="${filter['event_type'] == e}" th:text="${e}">event</option>
+  </select>
+  <input type="date" name="from" th:value="${filter['from']} ?: ''">
+  <input type="date" name="to" th:value="${filter['to']} ?: ''">
+  <button type="submit">Lọc</button>
+</form>
+<table class="data-table responsive-table">
+  <thead><tr><th>Thời điểm</th><th>Tác nhân</th><th>Sự kiện</th><th>Đối tượng</th><th>Mã</th></tr></thead>
+  <tbody>
+    <tr th:each="r : ${rows}">
+      <td data-label="Thời điểm" th:text="${r.occurredAt}"></td>
+      <td data-label="Tác nhân" th:text="${r.actorName} ?: (${r.actorType} == 'he_thong' ? 'Hệ thống' : ${r.actorType})"></td>
+      <td data-label="Sự kiện"><span class="chip" th:text="${r.eventType}">event</span></td>
+      <td data-label="Đối tượng" th:text="${r.objectType}"></td>
+      <td data-label="Mã"><code th:text="${r.objectId}"></code></td>
+    </tr>
+    <tr th:if="${rows.isEmpty()}"><td colspan="5" data-label="">Không có bản ghi vết khớp bộ lọc.</td></tr>
+  </tbody>
+</table>
+</div>
+</body>
+</html>

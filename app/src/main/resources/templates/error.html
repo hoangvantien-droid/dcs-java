@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Thông báo — DCS</title></head>
+<body>
+<div layout:fragment="content">
+  <h1>Không thực hiện được thao tác</h1>
+  <div class="alert-banner alert-banner--warning">
+    <strong>Cảnh báo:</strong>
+    <span th:text="${message} ?: 'Thao tác bị chặn bởi quy tắc nghiệp vụ.'">Lý do</span>
+  </div>
+  <p><a href="#" onclick="history.back();return false;" class="btn-link">← Quay lại</a></p>
+</div>
+</body>
+</html>

@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Kết quả tìm — DCS</title></head>
+<body>
+<div layout:fragment="content" th:with="f=${f}">
+<h1>Kết quả tìm kiếm</h1>
+<form method="get" th:action="@{/search}" class="search-form"
+      th:attr="hx-get=@{/search/results}" hx-target="#search-results" hx-swap="innerHTML"
+      hx-trigger="change, submit, keyup changed delay:400ms from:input[name='q']" hx-push-url="true">
+  <div class="search-bar-full">
+    <input type="search" name="q" th:value="${q}" placeholder="Tìm số hiệu, tiêu đề, nội dung…" autofocus>
+    <label class="hist-toggle">
+      <input type="checkbox" name="historical" value="1" th:checked="${includeHistorical}">
+      Bao gồm bản lịch sử
+    </label>
+    <button type="submit">Tìm</button>
+  </div>
+  <div class="search-layout">
+    <aside class="search-filters">
+      <input type="checkbox" id="filters-toggle" class="filters-toggle" aria-hidden="true">
+      <label for="filters-toggle" class="filters-summary"><h2>Bộ lọc</h2></label>
+      <fieldset>
+        <legend>Loại tài liệu</legend>
+        <label class="filter-check" th:each="dt : ${ {'SOP','WI','Form','Policy','External'} }">
+          <input type="checkbox" name="doc_type" th:value="${dt}" th:checked="${f.docTypes != null and f.docTypes.contains(dt)}"> <span th:text="${dt}">SOP</span>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Nguồn</legend>
+        <label class="filter-check"><input type="radio" name="origin" value="" th:checked="${f.origin == null or f.origin.isEmpty()}"> Tất cả</label>
+        <label class="filter-check"><input type="radio" name="origin" value="noi_bo" th:checked="${f.origin == 'noi_bo'}"> Nội bộ</label>
+        <label class="filter-check"><input type="radio" name="origin" value="ngoai_bo" th:checked="${f.origin == 'ngoai_bo'}"> Bên ngoài</label>
+      </fieldset>
+      <fieldset>
+        <legend>Phạm vi</legend>
+        <select name="scope_level">
+          <option value="">Tất cả phạm vi</option>
+          <option value="group" th:selected="${f.scopeLevel == 'group'}">Toàn hệ thống</option>
+          <option value="bu" th:selected="${f.scopeLevel == 'bu'}">Khối (BU)</option>
+          <option value="site" th:selected="${f.scopeLevel == 'site'}">Nhà máy/Site</option>
+          <option value="dept" th:selected="${f.scopeLevel == 'dept'}">Bộ phận</option>
+        </select>
+      </fieldset>
+      <fieldset>
+        <legend>Đơn vị cụ thể</legend>
+        <label class="filter-select-label">Khối (BU)
+          <select name="bu_id">
+            <option value="">— Tất cả khối —</option>
+            <option th:each="b : ${bus}" th:value="${b.buId}" th:selected="${f.buId == b.buId}" th:text="${b.buCode} + ' — ' + ${b.name}">bu</option>
+          </select>
+        </label>
+        <label class="filter-select-label">Nhà máy/Site
+          <select name="site_id">
+            <option value="">— Tất cả site —</option>
+            <option th:each="st : ${sites}" th:value="${st.siteId}" th:selected="${f.siteId == st.siteId}" th:text="${st.siteCode} + ' — ' + ${st.name}">site</option>
+          </select>
+        </label>
+        <label class="filter-select-label">Bộ phận
+          <select name="dept_id">
+            <option value="">— Tất cả bộ phận —</option>
+            <option th:each="d : ${depts}" th:value="${d.deptId}" th:selected="${f.deptId == d.deptId}" th:text="${d.deptCode} + ' — ' + ${d.name}">dept</option>
+          </select>
+        </label>
+      </fieldset>
+      <fieldset>
+        <legend>Ngày hiệu lực</legend>
+        <label class="filter-date">Từ <input type="date" name="eff_from" th:value="${f.effFrom} ?: ''"></label>
+        <label class="filter-date">Đến <input type="date" name="eff_to" th:value="${f.effTo} ?: ''"></label>
+      </fieldset>
+      <fieldset>
+        <legend>Cấp khớp</legend>
+        <label class="filter-check"><input type="checkbox" name="match_level" value="doc_id" th:checked="${f.matchLevels != null and f.matchLevels.contains('doc_id')}"> Số hiệu</label>
+        <label class="filter-check"><input type="checkbox" name="match_level" value="document" th:checked="${f.matchLevels != null and f.matchLevels.contains('document')}"> Tiêu đề</label>
+        <label class="filter-check"><input type="checkbox" name="match_level" value="section" th:checked="${f.matchLevels != null and f.matchLevels.contains('section')}"> Nội dung mục</label>
+        <label class="filter-check"><input type="checkbox" name="match_level" value="fulltext" th:checked="${f.matchLevels != null and f.matchLevels.contains('fulltext')}"> Toàn văn</label>
+      </fieldset>
+      <fieldset>
+        <legend>Sắp xếp</legend>
+        <select name="sort">
+          <option value="" th:selected="${f.sort == null or f.sort.isEmpty()}">Liên quan nhất</option>
+          <option value="eff_new" th:selected="${f.sort == 'eff_new'}">Mới hiệu lực</option>
+          <option value="doc_id" th:selected="${f.sort == 'doc_id'}">Số hiệu</option>
+        </select>
+      </fieldset>
+      <a class="filter-clear" th:href="@{/search(q=${q})}">Xoá tất cả lọc</a>
+    </aside>
+    <div class="search-results-col" id="search-results">
+      <p class="result-count muted" th:if="${q == null or q.isEmpty()}">Nhập từ khoá để tìm số hiệu, tiêu đề hoặc nội dung tài liệu.</p>
+      <div class="empty-state" th:if="${q != null and !q.isEmpty() and hits.isEmpty()}">
+        <p class="empty-state__reason" th:text="'Không tìm thấy kết quả cho &quot;' + ${q} + '&quot;.'">Không có kết quả</p>
+      </div>
+      <th:block th:if="${q != null and !q.isEmpty() and !hits.isEmpty()}">
+        <p class="result-count" th:text="${hits.size()} + ' kết quả'">kết quả</p>
+        <ul class="result-list">
+          <li class="result-card" th:each="h : ${hits}"
+              th:classappend="${h.status != 'hieu_luc' and h.status != 'da_ban_hanh'} ? ' result-card--historical' : ''">
+            <div class="result-card__line1">
+              <a th:href="@{/documents/{id}(id=${h.versionId})}"><strong th:text="${h.docId}">doc</strong> <span th:text="'— ' + ${h.title}"></span></a>
+              <span th:classappend="'status-label status-label--' + ${h.status}" th:text="${labels.docStatusLabel(h.status)}">trạng thái</span>
+            </div>
+            <div class="result-card__line2"><span th:text="'Phiên bản ' + ${h.versionNo}">PB</span></div>
+          </li>
+        </ul>
+      </th:block>
+    </div>
+  </div>
+</form>
+</div>
+</body>
+</html>

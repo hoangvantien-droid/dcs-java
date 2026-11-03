@@ -1,0 +1,78 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Tình trạng ban hành — DCS</title></head>
+<body>
+<div layout:fragment="content" th:with="v=${v},t=${tally},disp=${aggregateDisplay}">
+<h1 th:text="'Tình trạng ban hành: ' + ${v.docId} + ' v' + ${v.versionNo}">Tình trạng ban hành</h1>
+<p class="muted" th:text="${v.title}">title</p>
+<div class="alert-banner alert-banner--warning" th:if="${hasPostAcceptContentError}"><strong>Cảnh báo:</strong> Có site báo SAI NỘI DUNG SAU KHI ĐÃ ÁP DỤNG. Cần thu hồi và ban hành phiên bản mới gấp — các site đang dùng bản này nên ngừng sử dụng ngay.</div>
+<div class="alert-banner alert-banner--warning" th:if="${!hasPostAcceptContentError and hasContentReject}"><strong>Cảnh báo:</strong> Có site báo SAI NỘI DUNG. Cần thu hồi và ban hành phiên bản mới. Các site đang áp dụng nên cân nhắc ngừng dùng.</div>
+<div class="alert-banner alert-banner--info" th:if="${!hasPostAcceptContentError and !hasContentReject and hasMetaReject}"><strong>Thông tin:</strong> Có site báo sai thông tin đăng ký. Chỉ cần sửa metadata và cập nhật; nội dung vẫn đúng.</div>
+<section class="issuance-summary">
+  <p>Trạng thái tổng hợp: <span th:classappend="'status ' + ${disp.cls}" th:text="${disp.label}">tổng hợp</span></p>
+  <p class="muted" th:text="'Chấp nhận ' + ${t.accepted} + ' · Từ chối ' + ${t.rejected} + ' · Chờ ' + ${t.pending} + ' · Tổng ' + ${t.total} + ' site'">số liệu</p>
+</section>
+<h2>Phản hồi theo site</h2>
+<table class="data-table responsive-table site-matrix">
+  <thead><tr><th>Site</th><th>Trạng thái</th><th>Ngày áp dụng</th><th>Phản hồi lúc</th><th>Ghi chú</th></tr></thead>
+  <tbody>
+    <tr th:each="r : ${receipts}">
+      <td data-label="Site" th:text="${r.siteCode} + ' — ' + ${r.siteName}">site</td>
+      <td data-label="Trạng thái">
+        <span th:classappend="'status status-' + (${r.status} == 'tu_choi' ? 'thu_hoi' : (${r.status} == 'chap_nhan' ? 'hieu_luc' : 'da_ban_hanh'))"
+              th:text="${labels.receiptStatusLabel(r.status)}">trạng thái</span>
+      </td>
+      <td data-label="Ngày áp dụng" th:text="${r.applyDate} ?: ''"></td>
+      <td data-label="Phản hồi lúc" th:text="${r.respondedAt != null} ? ${#strings.substring(r.respondedAt,0,T(java.lang.Math).min(10,r.respondedAt.length()))} : ''"></td>
+      <td>
+        <th:block th:if="${r.status == 'tu_choi'}">
+          <strong th:text="${labels.receiptRejectTypeLabel(r.responseType)}">loại</strong>
+          <div class="reject-reason" th:if="${r.responseNote}" th:text="${r.responseNote}"></div>
+        </th:block>
+      </td>
+    </tr>
+    <tr th:if="${receipts.isEmpty()}"><td colspan="5" data-label="">Chưa phát hành tới site nào.</td></tr>
+  </tbody>
+</table>
+<section class="issuance-actions">
+  <h2>Hành động</h2>
+  <p th:if="${canEditMetadata}"><a th:href="@{/my-documents/{id}/edit-metadata(id=${v.versionId})}" class="btn-link">Sửa thông tin đăng ký (sai đăng ký)</a></p>
+  <div class="alert-banner alert-banner--info" th:unless="${canEditMetadata}"><strong>Đã khóa sửa trực tiếp:</strong> Đã có site chấp nhận và áp dụng. Chỉ có thể ra phiên bản mới qua thu hồi.</div>
+  <p th:if="${canRecall}"><a th:href="@{/my-documents/{id}/recall(id=${v.versionId})}" class="btn-link">Thu hồi &amp; ban hành phiên bản mới</a></p>
+  <form th:if="${canDelete}" method="post" th:action="@{/my-documents/{id}/delete(id=${v.versionId})}" class="inline-form"
+        onsubmit="return confirm('Xóa bản ban hành này? Chỉ được khi chưa site nào chấp nhận.')">
+    <button type="submit" class="btn-diff">Xóa bản ban hành</button>
+  </form>
+</section>
+<section class="issuance-publish">
+  <h2>Phát hành thêm site</h2>
+  <div class="alert-banner alert-banner--warning" th:if="${blockedByContentReject}"><strong>Cảnh báo:</strong> Có site báo SAI NỘI DUNG — phải thu hồi và ban hành phiên bản mới; không phát hành thêm site.</div>
+  <th:block th:unless="${blockedByContentReject}">
+    <p class="muted" th:if="${addableNew.isEmpty() and republishable.isEmpty()}">Đã phát hành tới mọi site trong phạm vi.</p>
+    <form th:unless="${addableNew.isEmpty() and republishable.isEmpty()}" method="post"
+          th:action="@{/my-documents/{id}/publish-sites(id=${v.versionId})}" class="publish-sites-form">
+      <p class="muted">Có thể khai ngày hiệu lực riêng cho từng site. Để trống = dùng ngày hiệu lực gốc.</p>
+      <fieldset th:if="${!addableNew.isEmpty()}">
+        <legend>Thêm site mới</legend>
+        <div class="site-publish-row" th:each="sopt : ${addableNew}">
+          <label class="filter-check"><input type="checkbox" name="site_ids" th:value="${sopt.siteId}"> <span th:text="${sopt.siteCode} + ' — ' + ${sopt.name}">site</span></label>
+          <label class="site-eff-date">Ngày hiệu lực <input type="date" th:name="'eff_' + ${sopt.siteId}"></label>
+        </div>
+      </fieldset>
+      <fieldset th:if="${!republishable.isEmpty()}">
+        <legend>Phát hành lại (đã từ chối sai đăng ký)</legend>
+        <div class="site-publish-row" th:each="r : ${republishable}">
+          <label class="filter-check"><input type="checkbox" name="site_ids" th:value="${r.siteId}"> <span th:text="${r.siteCode} + ' — ' + ${r.siteName}">site</span></label>
+          <label class="site-eff-date">Ngày hiệu lực <input type="date" th:name="'eff_' + ${r.siteId}"></label>
+        </div>
+      </fieldset>
+      <button type="submit" class="btn-action btn-action--primary">Phát hành</button>
+    </form>
+  </th:block>
+</section>
+<p><a th:href="@{/my-documents}">← Về Tài liệu của tôi</a></p>
+</div>
+</body>
+</html>

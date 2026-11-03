@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layout}">
+<head><title>Tài liệu của tôi — DCS</title></head>
+<body>
+<div layout:fragment="content">
+<div class="page-header">
+  <div class="page-header__titles">
+    <h1>Tài liệu của tôi</h1>
+    <p class="page-header__desc">Tài liệu bạn đăng ký. Theo dõi trạng thái tiếp nhận của site và tình trạng ban hành.</p>
+  </div>
+  <div class="toolbar" th:if="${nav.canRegister}">
+    <a th:href="@{/my-documents/export.xlsx}" class="btn-action btn-action--neutral">Xuất Excel</a>
+    <a th:href="@{/register}" class="btn-action btn-action--primary">Đăng ký tài liệu</a>
+  </div>
+</div>
+<table class="data-table responsive-table">
+  <thead><tr><th>Số hiệu tài liệu</th><th>Phiên bản</th><th>Tiêu đề</th><th>Trạng thái</th><th>Site xác nhận</th><th>Tình trạng ban hành</th><th>Thao tác</th></tr></thead>
+  <tbody>
+    <tr th:each="d : ${docs}" th:with="disp=${labels.aggregateDisplay(d.aggregate.name(), d.hasContentReject, d.hasPostAcceptContentError)}">
+      <td data-label="Số hiệu tài liệu">
+        <span th:if="${d.status == 'cho_hoan_thien'}" th:text="${d.docId}">doc</span>
+        <a th:unless="${d.status == 'cho_hoan_thien'}" th:href="@{/documents/{id}(id=${d.versionId})}" th:text="${d.docId}">doc</a>
+      </td>
+      <td data-label="Phiên bản" th:text="${d.versionNo}">1</td>
+      <td data-label="Tiêu đề" th:text="${d.title}">title</td>
+      <td data-label="Trạng thái">
+        <span th:classappend="'status status-' + ${d.status}" th:text="${labels.docStatusLabel(d.status)}">trạng thái</span>
+        <div class="reject-reason" th:if="${d.status == 'tu_choi' and d.rejectionReason}" th:text="'Lý do: ' + ${d.rejectionReason}"></div>
+      </td>
+      <td data-label="Site xác nhận">
+        <span th:if="${d.total > 0}" th:text="${d.accepted} + '/' + ${d.total}">0/0</span>
+        <span th:unless="${d.total > 0}" class="muted">—</span>
+      </td>
+      <td data-label="Tình trạng ban hành">
+        <span th:if="${d.total > 0 or d.hasPostAcceptContentError}" th:classappend="'status ' + ${disp.cls}" th:text="${disp.label}">tình trạng</span>
+        <span th:unless="${d.total > 0 or d.hasPostAcceptContentError}" class="muted">Chưa phát hành</span>
+      </td>
+      <td class="row-actions" data-label="Thao tác">
+        <th:block th:if="${d.status == 'da_ban_hanh'}">
+          <a th:href="@{/documents/{id}/view(id=${d.versionId})}" target="_blank" rel="noopener">Xem PDF</a>
+          <a th:href="@{/my-documents/{id}/issuance(id=${d.versionId})}">Tình trạng</a>
+        </th:block>
+        <a th:if="${d.status == 'cho_hoan_thien'}" th:href="@{/my-documents/{id}/edit(id=${d.versionId})}">Sửa nháp</a>
+        <a th:if="${d.status != 'da_ban_hanh' and d.status != 'cho_hoan_thien' and d.total > 0}" th:href="@{/my-documents/{id}/issuance(id=${d.versionId})}">Tình trạng</a>
+      </td>
+    </tr>
+    <tr th:if="${docs.isEmpty()}"><td colspan="7" data-label="">Chưa có tài liệu nào.</td></tr>
+  </tbody>
+</table>
+</div>
+</body>
+</html>
