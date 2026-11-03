@@ -83,9 +83,12 @@ CHECK danh sách này ở `027_report_content_error_after_accept.sql:24-39` (m�
 
 ## 5. Chú giải nghiệp vụ ngắn
 - **Receipt:** phiếu tiếp nhận của MỘT site cho MỘT phiên bản; đơn vị phản hồi là site (DC Site bấm).
-- **Hiện hành:** trạng thái người đọc được phép thấy = `da_ban_hanh` (mới) + `hieu_luc`/`da_dang_ky` (tương thích cũ); nguồn duy nhất `CURRENT_VIEW_STATUSES`.
+- **Hiện hành:** trạng thái người đọc được phép thấy = `da_ban_hanh` (mới) + `hieu_luc` (tương thích cũ); nguồn duy nhất `CURRENT_VIEW_STATUSES = ['da_ban_hanh','hieu_luc']` (**IND-05/D6 đã bỏ `da_dang_ky`**).
 - **"Đăng ký là ban hành luôn":** Author đăng ký → ban hành thẳng, không gác cổng ở nguồn; kiểm tra chuyển sang các site SAU ban hành.
+- **Ngày hiệu lực theo site (`site_effective_date`):** ngày hiệu lực RIÊNG mỗi site ở `document_receipt` (`028`, phương án 2a); `NULL` ⇒ coalesce về `effective_date` gốc. `apply_date` khi chấp nhận = `coalesce(site_effective_date, effective_date)` (D2).
+- **5 trường ngày:** `issued_date` (ban hành) · `external_effective_date` (hiệu lực pháp lý ngoại bộ) · `effective_date` (hiệu lực DCS gốc) · `original_effective_date` (ẩn — nạp dữ liệu cũ) · `site_effective_date` (riêng/site, mới) — xem DCS-8 §3.
+- **`todayVN()`:** "hôm nay" theo `Asia/Ho_Chi_Minh` (UTC+7), dùng cho mọi so sánh ngày hiệu lực/áp dụng; thay `today()` UTC cũ (D5, `src/lib/clock.ts`).
 - **Bối cảnh tại thời điểm xác nhận:** `read_acknowledgements`/`document_receipt` lưu bộ phận/nhóm/site lúc xác nhận; báo cáo không tra lại L1.
 
 ---
-*Hết bộ tài liệu DCS-1 → DCS-10. Nguồn sự thật: nhánh `dcs-lifecycle-sync-specs`, 27 migration (gồm 026/027).*
+*Hết bộ tài liệu DCS-1 → DCS-10. Nguồn sự thật: nhánh `dcs-persite-effective-and-fixes`, 28 migration (gồm 026/027/028).*

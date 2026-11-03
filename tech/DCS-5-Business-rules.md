@@ -43,8 +43,8 @@
 → Khối tự-hết-hạn ĐÃ GỠ khỏi `fn_activate_due_versions` (`026_lifecycle_sync.sql:155-157`); cảnh báo ở `catalog.ts domain:132` (`qua_han_su_dung`) + `detail.eta` banner + preset `expired` (`catalog.ts domain:133`).
 
 ## BR-08 — Chặn hiển thị/chấp nhận khi chưa tới ngày hiệu lực (điểm 4)
-**IF** Reader xem danh mục/chi tiết **THEN** chỉ thấy version hiện hành VÀ `effective_date <= CURRENT_DATE` (`listVisibleDocuments`/`canViewVersion` readOnly: `catalog.ts domain:116-117`, `:186-187`; `isEffectiveNow:51-59`).
-**IF** DC Site bấm chấp nhận mà `effective_date > hôm nay` **THEN** chặn `receipt.before_effective` (`receipt.ts:381-383`).
+**IF** Reader xem danh mục/chi tiết **THEN** chỉ thấy version hiện hành (`da_ban_hanh/hieu_luc` — IND-05 bỏ `da_dang_ky`) VÀ `effective_date <= CURRENT_DATE` (`listVisibleDocuments`/`canViewVersion` readOnly; `isEffectiveNow`).
+**IF** DC Site bấm chấp nhận mà **ngày hiệu lực của site** `coalesce(site_effective_date, effective_date) > hôm nay` (giờ VN qua `todayVN()`) **THEN** chặn `receipt.before_effective` (`receipt.ts:assertCanRespond`). [mới kiểm chứng đọc code]
 
 ## BR-09 — Khóa metadata khi đã có site chấp nhận (điểm 6, dùng chung cho sửa & phát hành lại)
 **IF** version có ≥1 receipt `chap_nhan`
@@ -68,10 +68,22 @@
 **IF** receipt đã `chap_nhan` và loại `sai_noi_dung` **THEN** report → `bao_sai_noi_dung_sau_chap_nhan`, receipt GIỮ `chap_nhan`, audit riêng (không còn lệch dữ liệu).
 → `convertReportToRejection` (`issue-report.ts:130-194`); enum + event mới ở `027_report_content_error_after_accept.sql`.
 
-## BR-13 — apply_date không sớm hơn ngày hiệu lực (điểm 8)
-**IF** DC Site chấp nhận với `apply_date < effective_date`
-**THEN** chặn `receipt.apply_before_effective`.
-→ `acceptReceipt` (`receipt.ts:409-412`); ràng buộc DB `chk_receipt_apply_date` (chấp nhận phải có apply_date, `017_receipt_model.sql`).
+## BR-13 — apply_date = ngày hiệu lực của site, không sớm hơn ngày hiệu lực gốc (điểm 8 + D2)
+**IF** DC Site chấp nhận receipt
+**THEN** `apply_date = coalesce(site_effective_date, effective_date)` (**D2: KHÔNG dùng today()/ngày bấm**); nếu không có ngày nào → chặn `receipt.no_effective`; nếu `apply_date < effective_date` gốc → chặn `receipt.apply_before_effective`.
+→ `acceptReceipt` (`receipt.ts`); ràng buộc DB `chk_receipt_apply_date` (chấp nhận phải có apply_date, `017_receipt_model.sql`). "Chấp nhận" = đồng ý với ngày đã khai; route `/accept` không nhận `apply_date` (IND-03). [mới kiểm chứng đọc code]
+
+## BR-13b — Ngày hiệu lực riêng theo site (phương án 2a — D1/D3/D4)
+**IF** một tài liệu đã ban hành ở site A cần hiệu lực ở site B vào ngày khác
+**THEN** KHÔNG nhân bản tài liệu/phiên bản; khai `document_receipt.site_effective_date` riêng cho site B qua luồng "phát hành thêm site" (`publishAdditionalSites`). Mọi guard per-site đọc `coalesce(site_effective_date, effective_date)`.
+- Khai lúc THÊM site: `site_effective_date` (nếu có) phải ≥ hôm nay VN (`publish.effective_past`) và ≥ `issued_date` (`publish.effective_before_issued`) — kiểm ở domain, báo sớm.
+- Ràng buộc DB (`028`): trigger `trg_check_site_effective` chặn `site_effective_date < issued_date`. **KHÔNG** đặt CHECK "không về quá khứ" ở DB (mốc runtime thuộc domain — D4).
+- Site không khai ngày riêng → `NULL` ⇒ coalesce về `effective_date` gốc.
+→ `receipt.ts:publishToSites/publishAdditionalSites/effectiveForSite`, `028_site_effective_date.sql`. [mới kiểm chứng đọc code]
+
+## BR-13c — Múi giờ Việt Nam cho mọi so sánh "hôm nay" (D5)
+**IF** code so sánh "ngày hiệu lực"/"ngày áp dụng" với hôm nay
+**THEN** dùng `todayVN()` (`src/lib/clock.ts`) = `Intl.DateTimeFormat('en-CA',{timeZone:'Asia/Ho_Chi_Minh'})` — KHÔNG phụ thuộc `process.env.TZ`; phía SQL đặt `connection.TimeZone='Asia/Ho_Chi_Minh'` một chỗ trong `src/db/client.ts` nên `CURRENT_DATE`/`now()` cũng theo VN. Hai phía cùng hệ quy chiếu → hết lệch biên 00:00–07:00. `today()` UTC cũ đã thay ở `receipt.ts`, `registration.ts`, `lifecycle-status.ts`, `migration-load.ts`; `file-store.ts` giữ UTC (đường dẫn tệp — không đổi). [mới kiểm chứng đọc code; biên nửa đêm có test thuần `clock.test.ts`]
 
 ## BR-14 — In bản sao kiểm soát (mở cho trạng thái ban hành mới — điểm 3)
 **IF** version hiện hành (`isCurrentlyEffective` = `da_ban_hanh/hieu_luc/da_dang_ky`) và người in có quyền xem
@@ -131,7 +143,14 @@ Chú thích: ✅ khớp · ⚠️ lệch (spec cũ còn mô tả mô hình cũ) 
 | Thu hồi rồi site vẫn phản hồi | cho phản hồi | vô hiệu phiếu + loại khỏi badge | ✅ đã vá (`receipt.ts`) |
 | Khóa metadata sau chấp nhận | không thống nhất | 1 guard chung sửa & phát hành lại | ✅ đã vá (`receipt.ts`) |
 | Report → từ chối khi đã chấp nhận | lệch dữ liệu (report đóng, receipt vẫn chấp nhận) | chặn sai đăng ký; đường báo sai nội dung riêng | ✅ đã vá (`027`, `issue-report.ts`) |
+| apply_date khi chấp nhận | = ngày bấm (today) | = `coalesce(site_effective_date, effective_date)` (D2) | ✅ đã vá (`receipt.ts`) |
 | apply_date vs effective | không chặn | chặn apply_date < effective | ✅ đã vá (`receipt.ts`) |
+| Ngày hiệu lực theo site | một ngày chung cho mọi site | `site_effective_date` riêng/site (coalesce ngày gốc) | ➕ mới (`028`, `receipt.ts` — D1/D3) |
+| "Hôm nay" cho guard ngày | `today()` UTC (lệch tối VN) | `todayVN()` + TimeZone session Postgres = VN | ✅ đã vá (`clock.ts`, `client.ts` — D5) |
+| `da_dang_ky` là "hiện hành" | có trong `CURRENT_VIEW_STATUSES` | đã bỏ (chỉ `da_ban_hanh/hieu_luc`) | ✅ đã vá (IND-05/D6 — `lifecycle-status.ts`, `catalog.ts`) |
+| Phiếu bản `het_hieu_luc` còn chấp nhận | có (chỉ loại `thu_hoi`) | chặn + loại khỏi hàng chờ/badge | ✅ đã vá (IND-01 — `receipt.ts`) |
+| Admin-thuần xem `/documents` | spec cũ ngụ ý Admin xem tra cứu | runtime `requireDocFlow` chặn Admin-thuần 403 | ⚠️ lệch tài liệu (IND-06/D7 — sửa DCS-9 §3) |
+| `document_links`/`distribution_matrix` | có bảng | thiếu API/UI đầy đủ | ❌ Điểm mở (IND-07 — DCS-7) |
 | Sửa metadata xóa expiry | ghi NULL khi không nhập | giữ nguyên, chỉ xóa khi sentinel rỗng | ✅ đã vá (`receipt.ts`) |
 | Mẫu chuẩn FR-05 | yêu cầu "Cần thay mẫu", lead time… | chưa có bảng/route/domain | ❌ (`reference-sample-management` spec, điểm 11) |
 | Sửa/thu hồi tài liệu chưa xác nhận | spec mới có khung | khung spec `author-edit-recall-unacknowledged-docs` | ⚠️/❌ phần khung — xem Điểm mở |

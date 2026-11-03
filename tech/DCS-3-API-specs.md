@@ -57,7 +57,9 @@ Nguồn: `catalog.ts:80-284`. Bộ lọc danh mục & preset xem DCS-4/DCS-5.
 | GET | `/my-documents/:id/issuance` | `requireUser` + người đăng ký | — | `issuance-status.eta` (ma trận receipt + hành động) | 403/404 |
 | GET/POST | `/my-documents/:id/edit-metadata` | `requireUser` + người đăng ký | form: `title, issued_date, effective_date, review_cycle_months, expiry_date, owner_department_id` | GET `edit-metadata.eta`; POST → 302 issuance | `issue.locked_accepted, edit.bad_status, edit.effective_past` |
 | GET/POST | `/my-documents/:id/recall` | `requireUser` + người đăng ký | form `reason` | GET `author-recall.eta`; POST → 302 `/my-documents` | `recall.reason, recall.bad_status` |
-| POST | `/my-documents/:id/publish-sites` | `requireUser` + người đăng ký | form `site_ids[]` | 302 issuance | `publish.bad_status, publish.content_reject, publish.out_of_scope, publish.nothing, issue.locked_accepted` |
+| POST | `/my-documents/:id/publish-sites` | `requireUser` + người đăng ký | form `site_ids[]` + **`eff_<site_id>` (date, mỗi site một field, tùy chọn)** | 302 issuance | `publish.bad_status, publish.content_reject, publish.out_of_scope, publish.nothing, issue.locked_accepted, publish.effective_past, publish.effective_before_issued` |
+
+> **Luồng "thêm site ngày khác" (D3):** route gom các field `eff_<site_id>` thành `Record<site_id, 'YYYY-MM-DD'>` (bỏ rỗng) rồi truyền `siteEffectiveDates` vào `publishAdditionalSites`. Site không nhập ngày → `NULL` ⇒ coalesce về ngày hiệu lực gốc. KHÔNG mở lại `/register`. Nguồn: `documents.ts` handler `publish-sites`. [mới kiểm chứng đọc code]
 | POST | `/my-documents/:id/delete` | `requireUser` + người đăng ký | — | 302 `/my-documents` | `del.locked` |
 | GET/POST | `/my-documents/:id/edit` | `requireUser` + người đăng ký + status `cho_hoan_thien` | form đăng ký | GET `register.eta` (điền sẵn); POST → 302 `/my-documents` | 404 |
 
@@ -70,10 +72,12 @@ Nguồn: `documents.ts:143-578`.
 |--------|------|-------|---------|----------|-----|
 | GET | `/site-receipts` | `requireUser`; DC Site | — | `site-receipts.eta` (hàng chờ + tài liệu bị thu hồi); `notControl=true` nếu không giữ site nào | — |
 | GET | `/site-receipts/:id` | `requireUser` + DC Site đúng site | — | `receipt-respond.eta` (detail + sections + cờ selfRegistered) | 403/404 |
-| POST | `/site-receipts/:id/accept` | như trên | — | `sendOk` → `/site-receipts` | `receipt.bad_status, receipt.recalled, receipt.before_effective, receipt.apply_before_effective, receipt.no_permission(403)` |
+| POST | `/site-receipts/:id/accept` | như trên | — (**IND-03: KHÔNG nhận `apply_date`**) | `sendOk` → `/site-receipts` | `receipt.bad_status, receipt.recalled, receipt.superseded, receipt.before_effective, receipt.apply_before_effective, receipt.no_effective, receipt.no_permission(403)` |
 | POST | `/site-receipts/:id/reject` | như trên | form `reject_type∈{sai_dang_ky,sai_noi_dung}`, `note` (bắt buộc) | `sendOk` → `/site-receipts` | 400 loại không hợp lệ; `receipt.reason`, các lỗi như trên |
 
-Nguồn: `receipts.ts:21-87`.
+Nguồn: `receipts.ts`; `receipt.ts:acceptReceipt`.
+
+> **IND-03 (D2) — `/accept` KHÔNG nhận `apply_date`:** route gọi `acceptReceipt(sql, { receiptId, userId })` — không có tham số ngày. "Chấp nhận" = đồng ý với ngày đã khai; domain tự đặt `apply_date = coalesce(site_effective_date, effective_date)`, không phải ngày bấm. Nếu không có ngày hiệu lực nào → `receipt.no_effective`. [mới kiểm chứng đọc code]
 
 ## 6. Report bất thường (`src/routes/issue-reports.ts`)
 
@@ -105,7 +109,9 @@ Nguồn: `reviews.ts:16-50`.
 
 Nguồn: `printing.ts:16-69`. `/verify/:token` là route duy nhất không yêu cầu đăng nhập (`printing.ts:4-6`).
 
-## 9. Gói ban hành (`src/routes/packages.ts`)
+## 9. Gói ban hành (`src/routes/packages.ts`) — **[Legacy]** (IND-02)
+
+> **IND-02 — nhãn [Legacy]:** luồng gói còn theo mô hình CŨ: `attachToPackage` chỉ nhận version `cho_xac_nhan/da_dang_ky` và kích hoạt gói đi qua `da_dang_ky → hieu_luc` (`package.ts`, `fn_activate_due_versions`). Mô hình mới ban hành thẳng `da_ban_hanh` KHÔNG sinh `da_dang_ky` nên các màn hình/route `/packages` chỉ còn tác dụng với dữ liệu legacy; chưa đồng bộ với mô hình receipt. Coi là **[Legacy]** cho tới khi `package.ts` được cập nhật — xem Điểm mở DCS-7.
 
 | Method | Path | Quyền | Request | Response |
 |--------|------|-------|---------|----------|

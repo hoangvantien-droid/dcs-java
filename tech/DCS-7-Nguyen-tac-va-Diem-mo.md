@@ -2,10 +2,23 @@
 
 ## 1. Nguyên tắc trình bày
 
-- Mọi mục trong bộ tài liệu DCS-1→DCS-10 **kèm tham chiếu `file:dòng`** trỏ vào cây mã của nhánh `dcs-lifecycle-sync-specs`. **Không suy diễn** ngoài code.
+- Mọi mục trong bộ tài liệu DCS-1→DCS-10 **kèm tham chiếu `file:dòng`** (hoặc `file:hàm`) trỏ vào cây mã đã merge (nhánh `dcs-persite-effective-and-fixes`, gồm per-site effective + timezone VN + bug Nhóm A). **Không suy diễn** ngoài code.
 - Code là **nguồn sự thật duy nhất**. Khi comment/docstring mâu thuẫn với hành vi runtime, tài liệu theo **hành vi runtime** và ghi chú lại (ví dụ ở DCS-2 §1 về trạng thái `da_dang_ky` chỉ còn do dữ liệu cũ).
 - Enum trạng thái và mã nghiệp vụ dùng **đúng giá trị trong code/DB** (không đổi tên); nhãn tiếng Việt lấy từ `src/views/labels.ts` (nguồn duy nhất ánh xạ mã → nhãn).
-- **Tổng số migration thực trên nhánh: 27** (`001`…`027`), bao gồm `026_lifecycle_sync.sql` và `027_report_content_error_after_accept.sql`. Mọi con số khác (16, 25) trong tài liệu/README cũ là **lạc hậu** — xem bảng dưới.
+- **Tổng số migration thực trên nhánh: 28** (`001`…`028`), bao gồm `026_lifecycle_sync.sql`, `027_report_content_error_after_accept.sql`, và `028_site_effective_date.sql` (F3). Mọi con số khác (16, 25, 27) trong tài liệu/README cũ là **lạc hậu** — xem DCS-8 §1.
+- **F5 — nhãn kiểm chứng:** mỗi khẳng định về code gắn một trong: **[đã kiểm chứng test DB]** (test tích hợp Postgres — chạy VPS), **[mới kiểm chứng đọc code]** (đọc code đã merge; integration test tự skip vì máy không có Postgres local), **[chưa kiểm chứng runtime]** (suy từ code, chưa chạy xác nhận đầu-cuối).
+
+## 1b. Quyết định thiết kế đợt sửa per-site + fixes (D1–D7)
+
+| # | Quyết định | Tóm tắt | Vị trí |
+|---|-----------|---------|--------|
+| **D1** | Per-site effective (phương án 2a) | Giữ `effective_date` làm ngày GỐC; thêm `document_receipt.site_effective_date` (NULL=coalesce). Không nhân bản tài liệu/phiên bản. | `028`, `receipt.ts:effectiveForSite` |
+| **D2** | `apply_date = site effective` | `acceptReceipt` đặt `apply_date = coalesce(site_effective_date, effective_date)`, KHÔNG today(). "Chấp nhận" = đồng ý ngày đã khai. | `receipt.ts:acceptReceipt` |
+| **D3** | Khai ngày riêng khi THÊM site | Site đầu (lúc `/register`) coalesce ngày gốc; thêm site về sau qua `publishAdditionalSites` + ô `eff_<site_id>`. KHÔNG mở lại form đăng ký. | `documents.ts` publish-sites, `issuance-status.eta` |
+| **D4** | Ràng buộc ngày | `site_effective_date >= issued_date` = trigger DB (`028`); `>= hôm nay VN` = domain (mốc runtime không hợp ràng buộc lưu bền). | `028`, `receipt.ts`/`registration.ts` |
+| **D5** | Timezone VN | `todayVN()` (Intl, không phụ thuộc `process.env.TZ`) + TimeZone session Postgres = `Asia/Ho_Chi_Minh`. Hết lệch biên 00:00–07:00. | `clock.ts`, `client.ts` (xem DCS-6 §3b) |
+| **D6** | IND-05 bỏ `da_dang_ky` | `CURRENT_VIEW_STATUSES = ['da_ban_hanh','hieu_luc']`; kéo về theo 4 định nghĩa "hiện hành" khác. Chỉ ảnh hưởng dữ liệu legacy. | `lifecycle-status.ts`, `catalog.ts` |
+| **D7** | IND-06 Admin ngoài luồng | Lệch tài liệu, KHÔNG phải bug: `requireDocFlow` chặn Admin-thuần 403; nhánh Admin trong catalog chỉ cho dual-role. Sửa DCS-9 §3. | `auth.ts`, `permissions.ts`, `catalog.ts` |
 
 ## 2. Spec `.kiro/specs` lạc hậu so với code (đánh dấu)
 
@@ -14,7 +27,7 @@
 | `author-edit-recall-unacknowledged-docs` | ⚠️ mới có khung (requirements/design/tasks) — phần "sửa/thu hồi tài liệu chưa xác nhận" chưa hoàn thiện nội dung; một phần hành vi đã nằm trong `receipt.ts` (edit/recall/delete theo điều kiện receipt) nhưng spec chưa mô tả khớp mô hình mới |
 | `reference-sample-management` | ❌ chưa có code (mẫu chuẩn FR-05) — điểm 11 |
 | `catalog-excel-export` | ✅ đã hiện thực (`xlsx.ts`, export ở catalog/my-documents) |
-| `publish-additional-sites` | ✅ đã hiện thực (`publishAdditionalSites`) |
+| `publish-additional-sites` | ✅ đã hiện thực (`publishAdditionalSites`) — nay có thêm **ngày hiệu lực riêng per-site** (D1/D3, `028`) |
 | `review-visibility-dc-site` | ✅ đã hiện thực (`reviewBacklogForSites`) |
 | `expired-document-visibility` | ✅ đã hiện thực (preset `expired`, banner — điểm 9) |
 | `dispute-label-split` | ✅ đã hiện thực (`aggregateDisplay` tách sai nội dung/sai đăng ký) |
@@ -33,6 +46,11 @@ Các spec `.kiro` mô tả **mô hình cũ (duyệt 2 lớp, số migration cũ)
 
 ### Sửa/thu hồi tài liệu chưa xác nhận
 - Spec `author-edit-recall-unacknowledged-docs` mới có khung. Hành vi hiện tại dựa trên điều kiện **receipt** (`accepted`/`rejected`) chứ không phải "đã xác nhận đọc" (ack). Cần làm rõ khung spec khớp mô hình receipt mới hay bổ sung điều kiện theo ack.
+
+### IND-07 — `document_links` + `distribution_matrix` thiếu API/UI đầy đủ
+- **`document_links`** (nhãn liên kết QDMS, `001`) có bảng + được nạp hiển thị ở `detail.eta` (`catalog.ts:loadLinks`) và view tra ngược `v_clause_references`, nhưng **KHÔNG có route/UI để tạo/sửa/xóa nhãn** trong DCS — nhãn phải nạp từ nguồn khác (QDMS/nạp dữ liệu). Chỉ-đọc ở phía DCS.
+- **`distribution_matrix`** (`001`) tồn tại trong lược đồ để tính "ai phải đọc", phục vụ qua `v_distribution_resolved`/`v_ack_pending`, nhưng **KHÔNG có API/UI quản lý ma trận phân phối trực tiếp** — ma trận suy từ scope + bộ phận/nhóm, không có màn CRUD riêng.
+- **Hệ quả:** cần chốt nghiệp vụ: (a) DCS có cần màn quản lý nhãn liên kết + ma trận phân phối không, hay giữ nguồn ngoài (QDMS/L1); (b) nếu cần, bổ sung route + domain + view. Hiện là **điểm mở chưa implement**. [mới kiểm chứng đọc code — grep route/view cho `document_links`/`distribution_matrix` = chỉ đọc hiển thị, không có CRUD]
 
 ### Chỗ code chưa rõ / chưa đầy đủ
 - **Trạng thái legacy còn trong CHECK/union:** `cho_xac_nhan`, `tu_choi`, `da_dang_ky`, `hieu_luc` còn giữ cho dữ liệu/giai đoạn chuyển đổi (comment "Task 9 dọn"). Luồng mới không tạo chúng; cần một đợt dọn sau khi chắc không còn dữ liệu tham chiếu.

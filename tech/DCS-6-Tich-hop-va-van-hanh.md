@@ -11,7 +11,7 @@
 
 - **Nguyên tắc nền:** L1 là nguồn sự thật cho định danh, cây tổ chức, phân quyền. DCS giữ **bản đọc** (`org_bu/org_site/org_department/users/user_departments`) để tính "ai phải đọc tài liệu này" mà không phải gọi API L1 cho từng dòng báo cáo. Nguồn: `001_schema.sql:50-120`.
 - **Giai đoạn 1 (L1 CHƯA vận hành):** DCS tự giữ mật khẩu (`users.password_hash`, argon2id), phiên (`app_session`), vai trò (`user_roles`). Toàn bộ CÓ HẠN SỬ DỤNG — khi L1 lên chuyển sang OIDC và đồng bộ vai trò, gỡ các bảng/cột này. Nguồn: `003_auth_giai_doan_1.sql:3-11`; đường duy nhất lấy user `middleware/auth.ts:62-64` (chỉ sửa một hàm khi đổi OIDC).
-- **LƯU BỐI CẢNH TẠI THỜI ĐIỂM XÁC NHẬN — KHÔNG tra lại L1 sau:** `read_acknowledgements` lưu `department_id` + `functional_group_id` khi người dùng bấm xác nhận đọc; báo cáo tồn đọng về sau KHÔNG tra lại L1 (người đổi bộ phận/rời nhóm không làm sai bằng chứng). Tương tự, `document_receipt` ghi `apply_date`/bối cảnh site tại thời điểm chấp nhận. Nguồn: `acknowledgement.ts:46-72`, `001_schema.sql` (comment bảng `read_acknowledgements`), `017_receipt_model.sql:45-58`.
+- **LƯU BỐI CẢNH TẠI THỜI ĐIỂM XÁC NHẬN — KHÔNG tra lại L1 sau:** `read_acknowledgements` lưu `department_id` + `functional_group_id` khi người dùng bấm xác nhận đọc; báo cáo tồn đọng về sau KHÔNG tra lại L1 (người đổi bộ phận/rời nhóm không làm sai bằng chứng). Tương tự, `document_receipt` ghi `apply_date` = `coalesce(site_effective_date, effective_date)` (**ngày hiệu lực đã khai cho site, không phải ngày bấm** — D2) tại thời điểm chấp nhận. Nguồn: `acknowledgement.ts:46-72`, `001_schema.sql` (comment bảng `read_acknowledgements`), `017_receipt_model.sql:45-58`, `028_site_effective_date.sql`.
 - **Chặn ghi lên bản đọc (giai đoạn 001/002):** rule `*_no_write` chặn UPDATE; từ Ver2 (005) DCS sở hữu cây tổ chức nên các rule này được DROP (`005:40-45`).
 
 ## 3. Tác vụ nền (job) — oneshot qua systemd timer
@@ -26,6 +26,15 @@
 - **systemd units (`deploy/`):**
   - `dcs-jobs.service`: `Type=oneshot`, `User/Group=dcs`, `ExecStart=/usr/bin/node dist/jobs/scheduler.js`, `ExecStartPost=.../ocr-worker.js`.
   - `dcs-jobs.timer`: `OnCalendar=*-*-* 02:00:00`, `Persistent=true` (chạy 02:00 hằng ngày, bù nếu máy tắt).
+
+## 3b. Múi giờ Việt Nam (Asia/Ho_Chi_Minh, UTC+7) — quyết định D5
+
+- **Vấn đề:** `today()` cũ = `new Date().toISOString().slice(0,10)` cho ngày theo UTC; buổi tối giờ VN (00:00–07:00 UTC+7 = ngày hôm sau ở VN nhưng vẫn hôm trước ở UTC) → so sánh "ngày hiệu lực"/"ngày áp dụng" lệch một ngày.
+- **Cách chọn (ít rủi ro nhất, nhất quán toàn hệ):**
+  1. **Phía Node:** `todayVN()` (`src/lib/clock.ts`) tính qua `Intl.DateTimeFormat('en-CA',{ timeZone:'Asia/Ho_Chi_Minh' })` → `YYYY-MM-DD` theo lịch VN, **không phụ thuộc `process.env.TZ`** (nên không tác động `file-store.ts` vốn dùng ngày cho đường dẫn tệp). Nhận tham số `now?: Date` để test biên.
+  2. **Phía Postgres:** đặt `connection: { TimeZone: 'Asia/Ho_Chi_Minh' }` tại MỘT chỗ trong `getSql` (`src/db/client.ts`) → `CURRENT_DATE`/`now()` trong SQL cũng theo VN.
+- Hai phía dùng cùng một hệ quy chiếu → hết lệch biên nửa đêm. `today()` UTC cũ đã thay bằng `todayVN()` tại `receipt.ts`, `registration.ts`, `lifecycle-status.ts`, `migration-load.ts`; `file-store.ts` giữ nguyên (đường dẫn tệp). Nguồn: `clock.ts`, `client.ts`. [mới kiểm chứng đọc code; biên nửa đêm có test thuần `clock.test.ts`]
+- **Port Java/MySQL:** đặt timezone kết nối JDBC (`serverTimezone`/`connectionTimeZone=Asia/Ho_Chi_Minh`) + helper "hôm nay theo VN" ở tầng app, tương đương cặp `todayVN()` + TimeZone session.
 
 ## 4. Lưu trữ tệp (file storage)
 

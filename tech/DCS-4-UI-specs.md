@@ -16,7 +16,7 @@
 | Chờ site phản hồi | `/site-receipts` | `isSiteDocControl` | **`nav.pendingReceipts`** khi > 0 |
 | Báo bất thường (site) | `/issue-reports` | `isSiteDocControl` | — |
 | Xem xét định kỳ | `/reviews` | `canRegister || isSiteDocControl` | — |
-| Gói ban hành | `/packages` | `canRegister` | — |
+| Gói ban hành **[Legacy]** (IND-02) | `/packages` | `canRegister` | — |
 | Nhóm chức năng / Quản trị tổ chức / người dùng / Vai trò / Ghi vết | `/functional-groups`, `/admin/*`, `/audit` | `isAdmin` | — |
 
 **Badge số đếm chờ (`pendingReceipts`):** `pendingReceiptCountForSites` (`receipt.ts:252-261`):
@@ -26,6 +26,8 @@ COUNT(document_receipt) WHERE status='cho_phan_hoi'
   AND site_id ∈ các site người dùng giữ vai DC_SITE_DOC_CONTROL
 ```
 Admin-thuần đứng ngoài luồng (menu quản trị riêng); mục tài liệu ẩn (`nav.inDocFlow=false`).
+
+> **IND-02 — "Gói ban hành" là [Legacy]:** màn `/packages` theo mô hình gói cũ (`da_dang_ky → hieu_luc`); mô hình mới ban hành thẳng `da_ban_hanh` không sinh `da_dang_ky` nên các màn này chỉ còn tác dụng với dữ liệu legacy — chi tiết + API ở DCS-3 §9, Điểm mở ở DCS-7.
 
 Lỗi nghiệp vụ hiển thị qua `#toast-zone` (htmx 4xx → fragment toast tự ẩn sau 5s); non-htmx → trang `error.eta` (`http-errors.ts`).
 
@@ -50,7 +52,7 @@ Lỗi nghiệp vụ hiển thị qua `#toast-zone` (htmx 4xx → fragment toast 
 - `q` (text) · Preset (select) · Trạng thái (select: Đã ban hành / Đã thu hồi / Hết hiệu lực / Nháp) · Loại (`doc_type`) · Nguồn · Hiệu lực từ/đến (date) · **Site áp dụng** (`site_id`) · Tình trạng tiếp nhận (`rollout_status`: Chờ phản hồi/Đã tiếp nhận/Đã từ chối — ánh xạ receipt) · Sắp xếp (Hiệu lực mới nhất / Ban hành mới nhất / Sắp hết hạn / Số hiệu A-Z).
 - Preset **`overdue` = "Quá hạn xem xét"**: `next_review_date < CURRENT_DATE` (`catalog.ts domain:127-131`).
 
-**Scope/vai trò:** `listVisibleDocuments` lọc TRƯỚC trong truy vấn (`catalog.ts domain:48-137`): tài liệu mình nộp, hoặc trong phạm vi (group/cây tổ chức), hoặc là Admin. **Reader (`readOnlyViewer`)**: chỉ `da_ban_hanh/hieu_luc/da_dang_ky` VÀ `effective_date <= CURRENT_DATE` (điểm 4 — không thấy bản tương lai).
+**Scope/vai trò:** `listVisibleDocuments` lọc TRƯỚC trong truy vấn: tài liệu mình nộp, hoặc trong phạm vi (group/cây tổ chức), hoặc là Admin (nhánh Admin chỉ thực sự áp cho user có THÊM vai nghiệp vụ — Admin-thuần bị `requireDocFlow` chặn 403 trước, xem IND-06). **Reader (`readOnlyViewer`)**: chỉ `da_ban_hanh/hieu_luc` (**IND-05 đã bỏ `da_dang_ky`**) VÀ `effective_date <= CURRENT_DATE` (điểm 4 — không thấy bản tương lai).
 
 **Nút:** Đăng ký tài liệu (chỉ `canRegister`) → `/register`; Xuất danh mục Excel (chỉ `canRegister || isSiteDocControl`) → `/documents/export.xlsx` giữ nguyên querystring lọc.
 
@@ -106,6 +108,9 @@ Lỗi nghiệp vụ hiển thị qua `#toast-zone` (htmx 4xx → fragment toast 
 **Nút:** "Ban hành tài liệu" (POST `/register`) · "Lưu nháp" (POST `/register/draft`, formaction).
 Checklist bên phải: Đủ trường bắt buộc / Đã chọn tệp PDF / Khai mức độ thay đổi nếu thay thế.
 
+> **`original_effective_date` KHÔNG có trong form này (D-dữ liệu cũ):** trường này **ẩn**, chỉ dùng khi NẠP DỮ LIỆU CŨ (`migration-load.ts`, `migrated_record=TRUE`), chưa dùng ở luồng đăng ký thường. Xác nhận bằng đọc `register.eta` (không có field `original_effective_date`). Vì không migrate tài liệu cũ ở đợt này, `original_effective_date` không ảnh hưởng đăng ký mới. [mới kiểm chứng đọc code]
+> **Ngày hiệu lực lúc đăng ký = ngày gốc cho tập site đầu:** các site chọn lúc `/register` nhận `site_effective_date = NULL` ⇒ coalesce về `effective_date` gốc. Ngày riêng per-site chỉ khai khi THÊM site về sau (§7, D3).
+
 ## 6. Tài liệu của tôi (`/my-documents`, `my-documents.eta`)
 
 **Mục đích:** Author theo dõi tài liệu mình nộp + tình trạng ban hành theo site.
@@ -118,11 +123,13 @@ Checklist bên phải: Đủ trường bắt buộc / Đã chọn tệp PDF / Kh
 - Banner: có `sai_noi_dung` → cảnh báo thu hồi + bản mới; có `sai_dang_ky` → info sửa metadata.
 - Trạng thái tổng hợp (`aggregateDisplay`) + đếm Chấp nhận/Từ chối/Chờ/Tổng.
 - Ma trận `site-response-matrix.eta` (component).
-- **Hành động (ẩn/hiện theo điều kiện domain):**
-  - Sửa thông tin đăng ký / Thu hồi & ra bản mới — hiện khi `canEditOrRecall` (chưa ai chấp nhận HOẶC có từ chối).
-  - Khi đã có site chấp nhận → khóa sửa trực tiếp, chỉ còn Thu hồi & ra bản mới.
+- **Hành động (ẩn/hiện theo điều kiện domain — IND-04c: tách `canRecall` khỏi `canEditMetadata`):**
+  - Sửa thông tin đăng ký — hiện khi `canEditMetadata` (= chưa ai chấp nhận HOẶC có ≥1 từ chối).
+  - Thu hồi & ra bản mới — hiện khi `canRecall` (= version `da_ban_hanh`); **LUÔN** hiện kể cả khi mọi site đã chấp nhận (domain `recallByAuthor` đã mở quyền thu hồi).
+  - Khi đã có site chấp nhận → khối "Đã khóa sửa trực tiếp" chỉ xuất hiện khi `!canEditMetadata`; nút Thu hồi vẫn còn.
   - Xóa bản ban hành — chỉ khi `canDelete` (chưa ai chấp nhận); confirm "Xóa bản ban hành này?".
-  - Phát hành thêm site: fieldset "Thêm site mới" + "Phát hành lại (đã từ chối sai đăng ký)"; chặn nếu `blockedByContentReject`.
+  - Phát hành thêm site: fieldset "Thêm site mới" + "Phát hành lại (đã từ chối sai đăng ký)"; chặn nếu `blockedByContentReject`. **Mỗi site kèm ô `<input type="date" name="eff_<site_id>">` (ngày hiệu lực riêng; để trống = dùng ngày hiệu lực gốc của phiên bản)** — luồng "thêm site ngày khác" (D3).
+- **Banner IND-04a:** nếu có ≥1 report `bao_sai_noi_dung_sau_chap_nhan` (biến `hasPostAcceptContentError`) → cảnh báo đỏ "Có site báo sai nội dung sau khi áp dụng" (xem DCS-2 §4 `aggregateDisplay`).
 
 ## 8. Sửa thông tin đăng ký (`/my-documents/:id/edit-metadata`, `edit-metadata.eta`)
 - **Khóa khi đã có site chấp nhận:** `locked=true` → banner "Đã khóa", ẩn form (điểm 6).
@@ -140,7 +147,8 @@ Checklist bên phải: Đủ trường bắt buộc / Đã chọn tệp PDF / Kh
 ## 11. Phản hồi một receipt (`/site-receipts/:id`, `receipt-respond.eta`)
 - PDF nhúng (`object` → `/view`) + mục bóc tách.
 - Cảnh báo tách vai nếu `selfRegistered`; cảnh báo nếu site khác báo sai nội dung/sai đăng ký.
-- **Chấp nhận:** nút "Xác nhận tiếp nhận" (POST `/accept`, htmx → toast) — **ẩn** nếu `_recalled` (thu hồi) hoặc `_beforeEffective` (chưa tới ngày hiệu lực); thay bằng banner.
+- Hiển thị **"Ngày hiệu lực tại site"** = `r.site_effective_date` (đã coalesce về ngày gốc khi site không khai riêng).
+- **Chấp nhận:** nút "Xác nhận tiếp nhận" (POST `/accept`, htmx → toast) — **KHÔNG có ô nhập ngày (IND-03)**; "chấp nhận" = đồng ý với ngày đã khai, `apply_date` = ngày hiệu lực của site (D2). **Ẩn** nút nếu `_recalled` (thu hồi / hết hiệu lực) hoặc `_beforeEffective` (chưa tới ngày hiệu lực — so với `site_effective_date` theo giờ VN); thay bằng banner.
 - **Từ chối:** `reject_type` (select: Sai thông tin đăng ký / Sai nội dung tài liệu) + `note*` (textarea). POST `/reject`.
 
 ## 12. Hộp report (`/issue-reports`, `issue-reports.eta`) — DC Site

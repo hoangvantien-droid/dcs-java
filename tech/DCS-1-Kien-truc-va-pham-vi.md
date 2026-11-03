@@ -1,6 +1,6 @@
 # DCS-1 — Kiến trúc & Phạm vi
 
-> **Nguồn sự thật:** source code trong worktree `dcs/.worktrees/dcs-lifecycle-sync-specs`, nhánh `dcs-lifecycle-sync-specs`. Mọi tham chiếu `file:dòng` trong bộ tài liệu này trỏ vào cây mã đó. Nơi nào comment trong code mâu thuẫn với hành vi runtime, tài liệu theo **hành vi runtime** và ghi chú lại.
+> **Nguồn sự thật:** source code đã merge trong worktree `dcs/.worktrees/dcs-persite-effective-and-fixes`, nhánh `dcs-persite-effective-and-fixes` (bao gồm per-site effective + timezone VN + bug Nhóm A trên nền `dcs-lifecycle-sync-specs`). Mọi tham chiếu `file:dòng`/`file:hàm` trong bộ tài liệu này trỏ vào cây mã đó. Nơi nào comment trong code mâu thuẫn với hành vi runtime, tài liệu theo **hành vi runtime** và ghi chú lại.
 >
 > **Stack hiện tại (mã nguồn tham chiếu):** TypeScript + Fastify + Eta (SSR) + htmx, PostgreSQL 16 (driver `postgres`). Bộ tài liệu này mô tả **hành vi nghiệp vụ** để tái hiện trên stack Java + Spring Boot + JDBC/MySQL (QLone), nên các điểm phụ thuộc Postgres được đánh dấu rõ ở DCS-6/Điểm mở.
 
@@ -48,7 +48,7 @@ Nguồn: `src/db/migrations/017_receipt_model.sql:4-18`, `src/domain/lifecycle-s
 └───────────────────────────────────────────────────────────────────────────┘
                  │  db/client.ts (pool `postgres`) · lib/audit.ts · lib/errors.ts
 ┌──────────────────────────────── PostgreSQL 16 ────────────────────────────┐
-│ 27 migration (001→027) · hàm/trigger PL/pgSQL cho vòng đời theo lịch        │
+│ 28 migration (001→028) · hàm/trigger PL/pgSQL cho vòng đời theo lịch        │
 └───────────────────────────────────────────────────────────────────────────┘
                  │                               │
      ┌───────────┴─────────┐        ┌────────────┴───────────┐
@@ -80,7 +80,7 @@ submitRegistration (domain/registration.ts:154)
 processVersionContent (best-effort: bóc tách + chỉ mục văn bản)
    ▼
 DC Site mở /site-receipts → /site-receipts/:id
-   │  acceptReceipt   → receipt 'chap_nhan' + apply_date   (chặn nếu chưa tới ngày hiệu lực / đã thu hồi)
+   │  acceptReceipt   → receipt 'chap_nhan' + apply_date = coalesce(site_effective_date, effective_date)  (chặn nếu chưa tới ngày hiệu lực site / đã thu hồi / hết hiệu lực)
    │  rejectReceipt   → receipt 'tu_choi' + response_type (sai_dang_ky | sai_noi_dung) + lý do
    ▼
 Reader /documents/:id → Báo bất thường (POST /documents/:id/report)
@@ -94,7 +94,7 @@ Nguồn: `src/routes/documents.ts:160-250`, `src/domain/registration.ts:154-262`
 
 ## 4. Danh sách bảng (sinh từ migration thật)
 
-> **Tổng số migration thực trên nhánh `dcs-lifecycle-sync-specs`: 27** (`001_schema.sql` … `027_report_content_error_after_accept.sql`), **bao gồm 026 (`lifecycle_sync`) và 027 (`report_content_error_after_accept`)**. (Đếm thực tế thư mục `src/db/migrations`, không phải con số cũ 16/25 trong tài liệu lạc hậu — xem DCS-7 bảng đối chiếu.)
+> **Tổng số migration thực trên nhánh `dcs-persite-effective-and-fixes`: 28** (`001_schema.sql` … `028_site_effective_date.sql`), **bao gồm 026 (`lifecycle_sync`), 027 (`report_content_error_after_accept`), 028 (`site_effective_date` — ngày hiệu lực per-site)**. (Đếm thực tế thư mục `src/db/migrations`, không phải con số cũ 16/25/27 trong tài liệu lạc hậu — xem DCS-7/DCS-8.)
 
 ### 4.1 Bảng tổ chức & định danh (bản đọc từ L1, giai đoạn 1 DCS tự giữ)
 
@@ -120,7 +120,7 @@ Nguồn: `src/routes/documents.ts:160-250`, `src/domain/registration.ts:154-262`
 | `document_sections`, `document_chunks` | Mục + phân đoạn đã bóc tách (phục vụ tìm kiếm / AI) | `001_schema.sql:~330`, `:~360` |
 | `document_links` | Nhãn liên kết tới QDMS (điều khoản, công đoạn…) | `001_schema.sql:~395` |
 | `document_site_rollout` | Áp dụng lệch pha theo site (mô hình cũ, còn để lọc danh mục) | `011_site_rollout.sql:3` |
-| `document_receipt` | **MỚI** — mỗi dòng = (phiên bản × site): phản hồi + apply_date | `017_receipt_model.sql:45` |
+| `document_receipt` | **MỚI** — mỗi dòng = (phiên bản × site): phản hồi + apply_date + **`site_effective_date` (ngày hiệu lực riêng/site — `028`)** | `017_receipt_model.sql:45`, `028_site_effective_date.sql` |
 | `document_issue_report` | **MỚI** — report bất thường của Reader, DC Site thẩm định | `017_receipt_model.sql:111` |
 | `read_acknowledgements` | Xác nhận đọc theo phiên bản, lưu bối cảnh tại thời điểm xác nhận | `001_schema.sql:~430` |
 | `distribution_matrix` | Ma trận "ai phải đọc" theo bộ phận × nhóm | `001_schema.sql:~415` |

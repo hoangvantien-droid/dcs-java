@@ -1,6 +1,10 @@
-# DCS-8 — Mô hình dữ liệu & ràng buộc (sinh từ 27 migration thật)
+# DCS-8 — Mô hình dữ liệu & ràng buộc (sinh từ 28 migration thật)
 
-> Bổ trợ cho ERD ở DCS-1. Liệt kê bảng/cột/ràng buộc nghiệp vụ quan trọng, suy từ `src/db/migrations/001`…`027`. **Tổng 27 migration** (gồm 026/027).
+> Bổ trợ cho ERD ở DCS-1. Liệt kê bảng/cột/ràng buộc nghiệp vụ quan trọng, suy từ `src/db/migrations/001`…`028`. **Tổng 28 migration** (gồm 026/027/028).
+>
+> **F3 — số migration (đã kiểm chứng đọc code):** baseline bộ tài liệu cũ ghi "27 migration (001…027)". Đợt sửa per-site thêm **`028_site_effective_date.sql`** → tổng thực tế **28**. Mọi chỗ còn ghi 16/25/27 là lạc hậu.
+>
+> **F5 — nhãn kiểm chứng:** các khẳng định về code trong bộ tài liệu này gắn một trong ba mức: **[đã kiểm chứng test DB]** (có test tích hợp chạm Postgres xác nhận — chạy trên VPS); **[mới kiểm chứng đọc code]** (đọc code đã merge trong worktree, chưa chạy runtime — do máy không có Postgres local nên integration test tự skip); **[chưa kiểm chứng runtime]** (suy từ code nhưng chưa có test/chạy xác nhận hành vi đầu-cuối). Mặc định các mục migration/cột mới ở đây là **[mới kiểm chứng đọc code]**.
 
 ## 1. Lịch sử migration (append-only, chạy theo thứ tự số, mỗi file một giao dịch)
 
@@ -33,6 +37,7 @@
 | 025 | `025_search_scope_ids.sql` | Lọc theo BU/Site/Dept cụ thể |
 | **026** | `026_lifecycle_sync.sql` | **Đồng bộ vòng đời mới**: `fn_generate_due_reviews` quét `da_ban_hanh` (điểm 2); gỡ khối tự hết hạn trong `fn_activate_due_versions` (điểm 9); `uq_one_current_per_doc` (điểm 1) |
 | **027** | `027_report_content_error_after_accept.sql` | Đường "báo sai nội dung sau khi đã chấp nhận" (điểm 7): status `bao_sai_noi_dung_sau_chap_nhan`, event mới |
+| **028** | `028_site_effective_date.sql` | **Ngày hiệu lực per-site (phương án 2a)**: thêm cột `document_receipt.site_effective_date DATE` (NULL = coalesce về `effective_date` gốc); hàm `fn_check_site_effective()` + trigger `trg_check_site_effective` chặn `site_effective_date < issued_date`. KHÔNG đặt CHECK "không về quá khứ" ở DB (ràng buộc theo mốc runtime thuộc tầng domain — D4) |
 
 ## 2. `documents`
 - PK `doc_id VARCHAR(50)` (người nhập, không tự sinh); `ON UPDATE CASCADE` cho khóa ngoài (đổi số hiệu tự lan truyền).
@@ -41,7 +46,13 @@
 
 ## 3. `document_versions` (bảng trung tâm)
 - `status ∈ {cho_hoan_thien, da_ban_hanh, thu_hoi, het_hieu_luc, (legacy) cho_xac_nhan, tu_choi, da_dang_ky, hieu_luc}` (CHECK `017:30-39`).
-- Hồ sơ hiệu lực: `issued_date`, `external_effective_date`, `effective_date` XOR `package_id` (`chk_effective_or_package`), `expiry_date`, `review_cycle_months`, `next_review_date`.
+- Hồ sơ hiệu lực: `issued_date`, `external_effective_date`, `effective_date` XOR `package_id` (`chk_effective_or_package`), `original_effective_date`, `expiry_date`, `review_cycle_months`, `next_review_date`.
+- **Mô hình 5 trường ngày (đọc code đã merge — quyết định D1-D3):**
+  1. `issued_date` — ngày BAN HÀNH / ngày trên hồ sơ của phiên bản (mốc gốc cho mọi ràng buộc ngày).
+  2. `external_effective_date` — ngày hiệu lực PHÁP LÝ ngoại bộ (chỉ khai khi `origin='ngoai_bo'`); thông tin tham chiếu, không điều khiển guard nội bộ.
+  3. `effective_date` — **ngày hiệu lực DCS GỐC**: ngày hiệu lực khai lúc đăng ký cho tập site đầu. Là nguồn coalesce khi site không khai ngày riêng.
+  4. `original_effective_date` — **[ẩn ở đăng ký]** dành cho NẠP DỮ LIỆU CŨ (`migrated_record=TRUE`): lưu ngày hiệu lực gốc của tài liệu cũ trong khi `effective_date` đặt = hôm nay để thỏa guard. Form `/register` KHÔNG có trường này (chỉ `migration-load.ts` ghi); chưa dùng ở luồng đăng ký thường. [mới kiểm chứng đọc code — `migration-load.ts`, `register.eta` không có field]
+  5. `site_effective_date` — **(MỚI, `028`)** ngày hiệu lực RIÊNG mỗi site, nằm ở `document_receipt` (xem §4), KHÔNG ở `document_versions`. `NULL` ⇒ coalesce về `effective_date` gốc.
 - Supersede: `supersedes_version_id` (tự tham chiếu); `change_significance ∈ {lon,nho}`, `change_summary`. `chk_change_significance` (supersede → bắt buộc khai), `chk_change_summary` (lớn → bắt buộc tóm tắt).
 - Tệp: `source_channel ∈ {api,thu_cong}`, `file_path`, `file_hash` (SHA-256), `file_page_count`.
 - Mốc: `submitted_at`, `confirmed_at` (= "ngày đăng ký" cũ), `effective_at`, `updated_at`.
@@ -53,10 +64,13 @@
 - `chk_effective_after_confirm`, `chk_expiry_after_effective`, `chk_rejection_reason`, `chk_recall_reason`.
 - Trigger: `fn_set_updated_at` (tính lại `next_review_date` khi đổi `effective_date`/`review_cycle_months`), `fn_set_next_review` (INSERT), `fn_sync_chunk_current` (đồng bộ `is_current`), `fn_validate_version` (sau 010: ép ≥1 nhãn liên kết khi rời `da_dang_ky/hieu_luc`), `fn_validate_package_member`/`fn_guard_package_date`.
 
-## 4. `document_receipt` (mô hình mới — `017`)
+## 4. `document_receipt` (mô hình mới — `017` + `028`)
 - PK `receipt_id`; FK `version_id`, `site_id`, `target_dept_id?`.
 - `apply_date` (ghi khi `chap_nhan`), `status ∈ {cho_phan_hoi,chap_nhan,tu_choi}`, `response_type ∈ {sai_dang_ky,sai_noi_dung}`, `response_note`, `responded_by/at`.
+- **`site_effective_date DATE` (MỚI — `028`, phương án 2a):** ngày hiệu lực RIÊNG khai cho site này; `NULL` ⇒ dùng ngày hiệu lực gốc `document_versions.effective_date` (coalesce). Mô hình: một thực thể nội dung (doc_id + version_no, một file/hash — `017`) dùng chung mọi site; khác biệt theo site chỉ là mốc hiệu lực + phản hồi, KHÔNG nhân bản tài liệu/phiên bản (quyết định D1).
+- **`apply_date` khi chấp nhận = `coalesce(site_effective_date, effective_date)`** — KHÔNG phải ngày bấm chấp nhận (quyết định D2; xem DCS-5 BR-13 và DCS-3 §5). [mới kiểm chứng đọc code — `receipt.ts:acceptReceipt`]
 - Ràng buộc: `uq_receipt_version_site` (1 receipt / version × site), `chk_receipt_reject_type`, `chk_receipt_reject_note`, `chk_receipt_responded`, `chk_receipt_apply_date` (chấp nhận phải có apply_date — nền cho điểm 8).
+- **Trigger `trg_check_site_effective` (`028`):** `BEFORE INSERT OR UPDATE OF site_effective_date` → `fn_check_site_effective()` tra `issued_date` theo `version_id`, `RAISE EXCEPTION` nếu `site_effective_date < issued_date` (chỉ kiểm khi NOT NULL). Ràng buộc "không về quá khứ (hôm nay VN)" ĐẶT Ở DOMAIN, không ở DB (D4).
 - Index: `idx_receipt_version/site/status`, `idx_receipt_pending` (partial WHERE `cho_phan_hoi`).
 
 ## 5. `document_issue_report` (mô hình mới — `017` + `027`)
