@@ -36,11 +36,40 @@ class JobsRunnerTest {
         return url == null || url.isBlank() ? null : url;
     }
 
-    private static DataSource dataSource(String url) {
-        // Chấp cả JDBC URL (jdbc:postgresql://...) lẫn URL kiểu postgres://.
+    private static DataSource dataSource(String raw) {
+        // Chấp cả JDBC URL (jdbc:postgresql://...) lẫn URL kiểu Node (postgres://user:pw@host:port/db).
+        // Scheme JDBC Postgres là 'jdbc:postgresql:' — KHÔNG phải 'jdbc:postgres:' — nên URL kiểu
+        // 'postgres://...' phải được dựng lại qua java.net.URI (giống DbSupport.fromJdbcUrl), chứ
+        // không chỉ ghép tiền tố 'jdbc:'.
+        String jdbcUrl;
+        String user = null;
+        String pw = null;
+        if (raw.startsWith("jdbc:")) {
+            jdbcUrl = raw;
+        } else {
+            java.net.URI uri = java.net.URI.create(raw);
+            String userInfo = uri.getUserInfo();
+            if (userInfo != null) {
+                String[] parts = userInfo.split(":", 2);
+                user = parts[0];
+                pw = parts.length > 1 ? parts[1] : "";
+            }
+            int port = uri.getPort() > 0 ? uri.getPort() : 5432;
+            String db = uri.getPath() == null ? "" : uri.getPath();
+            jdbcUrl = "jdbc:postgresql://" + uri.getHost() + ":" + port + db;
+        }
+        // stringtype=unspecified: Postgres tự suy kiểu đích (uuid/date/enum...) cho param String,
+        // nhất quán với DbSupport/application.yml.
+        if (!jdbcUrl.contains("stringtype=")) {
+            jdbcUrl += (jdbcUrl.contains("?") ? "&" : "?") + "stringtype=unspecified";
+        }
         DriverManagerDataSource ds = new DriverManagerDataSource();
         ds.setDriverClassName("org.postgresql.Driver");
-        ds.setUrl(url.startsWith("jdbc:") ? url : "jdbc:" + url);
+        ds.setUrl(jdbcUrl);
+        if (user != null) {
+            ds.setUsername(user);
+            ds.setPassword(pw);
+        }
         return ds;
     }
 
