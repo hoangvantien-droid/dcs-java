@@ -229,12 +229,8 @@ a:hover { text-decoration: underline; }
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  /* Kính mờ navy thương hiệu Masan: fallback đặc TRƯỚC, lớp trong mờ SAU.
-   * Giữ nguyên toàn bộ quy tắc chữ/icon/active bên dưới để nhãn luôn rõ. */
-  background-color: var(--glass-sidebar-bg-solid);
-  background-color: var(--glass-sidebar-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
+  /* Nền đặc navy Masan — cùng token với .topbar (--masan-900), không glass. */
+  background-color: var(--masan-900);
   border-right: none;
   padding: 12px 0;
   display: flex;
@@ -1586,7 +1582,7 @@ html { scroll-behavior: smooth; }
     -webkit-backdrop-filter: none;
   }
   .sidebar {
-    background-color: var(--glass-sidebar-bg-solid);
+    background-color: var(--masan-900);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -1599,6 +1595,6 @@ html { scroll-behavior: smooth; }
     background-color: var(--glass-bg-solid);
   }
   .sidebar {
-    background-color: var(--glass-sidebar-bg-solid);
+    background-color: var(--masan-900);
   }
 }

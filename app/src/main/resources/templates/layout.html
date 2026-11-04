@@ -38,24 +38,20 @@
     <label for="nav-toggle" class="nav-overlay" aria-hidden="true"></label>
     <nav class="sidebar" aria-label="Điều hướng chính" th:with="nav=${nav != null ? nav : T(com.dqh.dcs.web.NavFlags).anonymous()}">
       <ul>
-        <li class="sidebar-group">Không gian chung</li>
         <li><a th:href="@{/}"><span class="nav-ic"></span><span class="nav-label">Trang chủ</span></a></li>
         <li th:if="${nav.inDocFlow}"><a th:href="@{/documents}"><span class="nav-ic"></span><span class="nav-label">Danh mục tài liệu</span></a></li>
         <li th:if="${nav.canSeeMyDocuments}"><a th:href="@{/my-documents}"><span class="nav-ic"></span><span class="nav-label">Tài liệu của tôi</span></a></li>
         <th:block th:if="${nav.inDocFlow}">
-          <li class="sidebar-group">Quy trình</li>
           <li th:if="${nav.isSiteDocControl}"><a th:href="@{/site-receipts}"><span class="nav-ic"></span><span class="nav-label">Chờ site phản hồi</span><span class="nav-badge" th:if="${nav.pendingReceipts > 0}" th:text="${nav.pendingReceipts}">0</span></a></li>
           <li th:if="${nav.isSiteDocControl}"><a th:href="@{/issue-reports}"><span class="nav-ic"></span><span class="nav-label">Báo bất thường (site)</span></a></li>
           <li th:if="${nav.canRegister or nav.isSiteDocControl}"><a th:href="@{/reviews}"><span class="nav-ic"></span><span class="nav-label">Xem xét định kỳ</span></a></li>
           <li th:if="${nav.canRegister}"><a th:href="@{/packages}"><span class="nav-ic"></span><span class="nav-label">Gói ban hành</span></a></li>
         </th:block>
         <th:block th:if="${nav.isAdmin}">
-          <li class="sidebar-group">Quản trị</li>
           <li><a th:href="@{/functional-groups}"><span class="nav-ic"></span><span class="nav-label">Nhóm chức năng</span></a></li>
           <li><a th:href="@{/admin/org}"><span class="nav-ic"></span><span class="nav-label">Quản trị tổ chức</span></a></li>
           <li><a th:href="@{/admin/users}"><span class="nav-ic"></span><span class="nav-label">Quản trị người dùng</span></a></li>
           <li><a th:href="@{/admin/roles}"><span class="nav-ic"></span><span class="nav-label">Vai trò</span></a></li>
-          <li class="sidebar-group">Hệ thống</li>
           <li><a th:href="@{/audit}"><span class="nav-ic"></span><span class="nav-label">Ghi vết</span></a></li>
         </th:block>
       </ul>
