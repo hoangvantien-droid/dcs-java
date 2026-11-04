@@ -105,20 +105,6 @@
   --danger:     var(--status-error-fg);
   --topbar-h: 56px;
   --sidebar-w: 240px;
-
-  /* ================================================================
-   * QLONE / WINCOMMERCE — bảng màu thương hiệu đỏ cho SIDEBAR nền trắng.
-   * Tên riêng (--qlone-*) để KHÔNG đè token --brand/--masan đang dùng nơi
-   * khác; chỉ áp trong khối .sidebar (phong cách 'Quality dashboard').
-   * ================================================================ */
-  --qlone-brand:    #E3010F;  /* đỏ thương hiệu — vạch active, nền badge */
-  --qlone-brand-d:  #B5000C;  /* đỏ đậm — chữ mục đang chọn */
-  --qlone-brand-l:  #FDECEC;  /* hồng nhạt — nền mục đang chọn */
-  --qlone-line:     #E4E7EC;  /* viền phải sidebar mảnh */
-  --qlone-ink2:     #344054;  /* chữ mục nav (xám đậm) */
-  --qlone-ink-str:  #1F2328;  /* chữ khi hover (đậm hơn) */
-  --qlone-soft:     #F9FAFB;  /* nền hover (xám rất nhạt) */
-  --qlone-mute:     #667085;  /* chữ mờ: tiêu đề nhóm, phase-note */
 }
 
 * { box-sizing: border-box; }
@@ -151,14 +137,15 @@ a:hover { text-decoration: underline; }
  * dùng chung (áp dụng cuối)" ở cuối file. */
 
 /* ---- Thanh điều hướng ---- */
+/* Thanh trên: nền XANH MASAN navy đồng bộ với sidebar; chữ/icon đổi sáng. */
 .topbar {
   height: var(--topbar-h);
   display: flex;
   align-items: center;
   justify-content: space-between;
   padding: 0 16px;
-  background: var(--surface);
-  border-bottom: 1px solid var(--masan-100);
+  background: var(--masan-900);
+  border-bottom: 1px solid var(--masan-800);
   position: sticky;
   top: 0;
   z-index: 10;
@@ -172,7 +159,8 @@ a:hover { text-decoration: underline; }
   width: 36px;
   height: 36px;
   border-radius: var(--radius-md);
-  background: linear-gradient(135deg, var(--masan-700), var(--masan-900));
+  /* Gradient Masan sáng hơn (600 -> 500) để badge nổi trên topbar navy. */
+  background: linear-gradient(135deg, var(--masan-600), var(--masan-500));
   color: #fff;
   font-weight: 700;
   font-size: 14px;
@@ -180,7 +168,7 @@ a:hover { text-decoration: underline; }
 }
 .brand:hover { text-decoration: none; }
 .brand-wrap { display: flex; align-items: center; gap: 8px; }
-.brand-sub { font-size: 12px; color: var(--masan-text-secondary); white-space: nowrap; }
+.brand-sub { font-size: 12px; color: var(--masan-light-text); white-space: nowrap; }
 .search { flex: 1; max-width: 520px; }
 /* Ô tìm kiếm: icon kính lúp bên trái, nền --masan-25, focus đổi trắng + vòng focus */
 .search input {
@@ -200,14 +188,16 @@ a:hover { text-decoration: underline; }
   box-shadow: 0 0 0 3px rgba(0,119,230,.15);
   outline: none;
 }
-.topbar-right { display: flex; align-items: center; gap: 12px; font-size: 14px; }
+/* Khu phải: trên nền navy nên chữ/liên kết (tên user, Đăng xuất/Đăng nhập) đổi sáng. */
+.topbar-right { display: flex; align-items: center; gap: 12px; font-size: 14px; color: #fff; }
+.topbar-right a { color: #fff; }
 /* Điều khiển drawer mobile — ADD-only, chỉ ảnh hưởng markup MỚI.
  * Trên desktop (>768px) công tắc + hamburger + lớp phủ luôn ẩn; chúng chỉ
  * được bật trong @media (max-width:768px) ở cuối file. */
 .nav-toggle { display: none; }
 .nav-hamburger { display: none; }
 .nav-overlay { display: none; }
-.user-role { color: var(--muted); font-size: 12px; }
+.user-role { color: var(--masan-light-text); font-size: 12px; }
 /* Avatar tròn chữ cái đầu */
 .topbar .avatar {
   width: 32px;
@@ -221,17 +211,17 @@ a:hover { text-decoration: underline; }
   font-size: 12px;
   font-weight: 600;
 }
-/* Nút Đăng xuất dạng pill nhẹ; hover đảo sang nền --masan-700 chữ trắng */
+/* Nút Đăng xuất dạng pill trên nền navy: viền + chữ sáng, hover đảo sang nền trắng mờ. */
 .logout {
-  background: var(--masan-50);
-  color: var(--masan-700);
-  border: 1px solid var(--masan-100);
+  background: rgba(255,255,255,.08);
+  color: #fff;
+  border: 1px solid var(--masan-sky);
   border-radius: 9999px;
   padding: 6px 14px;
   font-size: 13px;
   font-weight: 600;
 }
-.logout:hover { background: var(--masan-700); color: #fff; text-decoration: none; }
+.logout:hover { background: var(--masan-sky); color: var(--masan-950); text-decoration: none; }
 
 /* ---- Bố cục ứng dụng ---- */
 .app-shell { display: flex; min-height: calc(100vh - var(--topbar-h)); }
@@ -239,13 +229,13 @@ a:hover { text-decoration: underline; }
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  /* Phong cách QLOne 'Quality dashboard': NỀN TRẮNG đặc, viền phải mảnh.
-   * Gỡ hẳn kính mờ navy + blur (chỉ trong khối .sidebar) để chữ xám đậm
-   * đọc rõ trên nền trắng; các mặt kính khác của app giữ nguyên. */
-  background-color: #fff;
-  backdrop-filter: none;
-  -webkit-backdrop-filter: none;
-  border-right: 1px solid var(--qlone-line);
+  /* Kính mờ navy thương hiệu Masan: fallback đặc TRƯỚC, lớp trong mờ SAU.
+   * Giữ nguyên toàn bộ quy tắc chữ/icon/active bên dưới để nhãn luôn rõ. */
+  background-color: var(--glass-sidebar-bg-solid);
+  background-color: var(--glass-sidebar-bg);
+  backdrop-filter: blur(var(--glass-blur));
+  -webkit-backdrop-filter: blur(var(--glass-blur));
+  border-right: none;
   padding: 12px 0;
   display: flex;
   flex-direction: column;
@@ -256,8 +246,7 @@ a:hover { text-decoration: underline; }
   align-items: center;
   gap: 11px;
   padding: 9px 20px;
-  color: var(--qlone-ink2);
-  font-weight: 500;
+  color: var(--masan-light-text);
   font-size: 14px;
   border-left: 4px solid transparent;
 }
@@ -266,39 +255,39 @@ a:hover { text-decoration: underline; }
 .sidebar .nav-ic svg { width: 19px; height: 19px; }
 .sidebar li a:hover .nav-ic, .sidebar li a.active .nav-ic { opacity: 1; }
 .sidebar .nav-label { flex: 1; min-width: 0; }
-/* Badge đếm (vd receipt chờ phản hồi): tròn, nền ĐỎ thương hiệu, chữ trắng. */
+/* Badge đếm (vd receipt chờ phản hồi): tròn, nền sky, chữ navy đậm. */
 .sidebar .nav-badge {
   flex-shrink: 0; min-width: 20px; height: 20px; padding: 0 6px;
   display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 10px; background: var(--qlone-brand); color: #fff;
+  border-radius: 10px; background: var(--masan-sky); color: var(--masan-950);
   font-size: 11px; font-weight: 700; line-height: 1;
 }
-/* Hover: nền xám rất nhạt, chữ đậm hơn — phong cách QLOne nền trắng. */
-.sidebar li a:hover { background: var(--qlone-soft); color: var(--qlone-ink-str); text-decoration: none; }
-/* Trạng thái đang chọn: nền hồng nhạt, chữ ĐỎ đậm, vạch dọc ĐỎ bên trái */
+/* Hover: nền navy sáng hơn, chữ trắng — tông Masan navy. */
+.sidebar li a:hover { background: var(--masan-800); color: #fff; text-decoration: none; }
+/* Trạng thái đang chọn: nền --masan-700, chữ trắng đậm, vạch chỉ báo sky bên trái */
 .sidebar li a.active,
 .sidebar li a[aria-current="page"] {
-  background: var(--qlone-brand-l);
-  color: var(--qlone-brand-d);
-  font-weight: 700;
-  border-left: 4px solid var(--qlone-brand);
+  background: var(--masan-700);
+  color: #fff;
+  font-weight: 600;
+  border-left: 4px solid var(--masan-sky);
 }
-/* Tiêu đề nhóm nhỏ, in hoa, chữ xám mờ trên nền trắng — gom nhóm trực quan */
+/* Tiêu đề nhóm nhỏ, in hoa, chữ mờ — gom nhóm trực quan các mục hiện có */
 .sidebar-group {
   font-size: 11px;
   text-transform: uppercase;
-  color: var(--qlone-mute);
+  color: var(--masan-group-head);
   letter-spacing: .05em;
   padding: 12px 20px 4px;
 }
-/* Mục không có quyền (chú thích) trên nền trắng */
-.sidebar li.muted { color: var(--qlone-mute); padding: 9px 20px; font-size: 13px; }
+/* Mục không có quyền (chú thích) trên nền navy */
+.sidebar li.muted { color: var(--masan-text-muted); padding: 9px 20px; font-size: 13px; }
 .phase-note {
   margin-top: auto;
   padding: 12px 20px;
   font-size: 12px;
-  color: var(--qlone-mute);
-  opacity: .9;
+  color: var(--masan-light-text);
+  opacity: .75;
 }
 
 /* ---- Nội dung ---- */
@@ -1560,7 +1549,8 @@ html { scroll-behavior: smooth; }
  * Mỗi lớp vẫn giữ border-radius/padding riêng ở khối gốc; ở đây phủ nền
  * kính, blur, viền sáng và bóng lớp (ghi đè border/box-shadow per-component).
  * ================================================================ */
-.topbar, .login-card, .home-block, .pkg-card, .org-col, .detail-main, .detail-side,
+/* .topbar KHÔNG còn trong nhóm kính sáng — nó dùng nền navy Masan riêng ở trên. */
+.login-card, .home-block, .pkg-card, .org-col, .detail-main, .detail-side,
 .add-user-card, .metric-card, .qa-answer, .no-results, .data-table, .suggest-list,
 .suggest-empty, .card, .report-card, .detail-footer__block, .detail-info-bar, .detail-panel,
 .filter-bar, .admin-panel, .empty-state, .confirm-file, .detail-meta, .report-form {
@@ -1576,10 +1566,7 @@ html { scroll-behavior: smooth; }
   background-color: var(--glass-bg-solid);           /* FALLBACK đặc (khai báo trước) */
   background-color: var(--glass-bg-strong);
 }
-/* .topbar có sẵn border-bottom riêng — không nhân đôi: bỏ viền kính vòng quanh,
- * giữ đường kẻ dưới; vẫn hưởng nền kính + blur + bóng ở trên. Đặt SAU nhóm kính
- * để thắng viền, và SAU quy tắc .topbar gốc để giữ border-bottom nhất quán. */
-.topbar { border: 0; border-bottom: 1px solid var(--masan-100); }
+
 
 /* ================================================================
  * FROSTED-GLASS — FALLBACK khả truy cập.
@@ -1590,7 +1577,7 @@ html { scroll-behavior: smooth; }
  * Giữ danh sách lớp đồng bộ với nhóm kính ở đầu file + .sidebar.
  * ================================================================ */
 @media (prefers-reduced-transparency: reduce) {
-  .topbar, .login-card, .home-block, .pkg-card, .org-col, .detail-main, .detail-side,
+  .login-card, .home-block, .pkg-card, .org-col, .detail-main, .detail-side,
   .add-user-card, .metric-card, .qa-answer, .no-results, .data-table, .suggest-list,
   .suggest-empty, .card, .report-card, .detail-footer__block, .detail-info-bar, .detail-panel,
   .filter-bar, .admin-panel, .empty-state, .confirm-file, .detail-meta, .report-form {
@@ -1599,19 +1586,19 @@ html { scroll-behavior: smooth; }
     -webkit-backdrop-filter: none;
   }
   .sidebar {
-    background-color: #fff;
+    background-color: var(--glass-sidebar-bg-solid);
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
 }
 @supports not ((backdrop-filter: blur(1px)) or (-webkit-backdrop-filter: blur(1px))) {
-  .topbar, .login-card, .home-block, .pkg-card, .org-col, .detail-main, .detail-side,
+  .login-card, .home-block, .pkg-card, .org-col, .detail-main, .detail-side,
   .add-user-card, .metric-card, .qa-answer, .no-results, .data-table, .suggest-list,
   .suggest-empty, .card, .report-card, .detail-footer__block, .detail-info-bar, .detail-panel,
   .filter-bar, .admin-panel, .empty-state, .confirm-file, .detail-meta, .report-form {
     background-color: var(--glass-bg-solid);
   }
   .sidebar {
-    background-color: #fff;
+    background-color: var(--glass-sidebar-bg-solid);
   }
 }
