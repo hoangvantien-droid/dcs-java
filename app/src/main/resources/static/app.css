@@ -105,6 +105,20 @@
   --danger:     var(--status-error-fg);
   --topbar-h: 56px;
   --sidebar-w: 240px;
+
+  /* ================================================================
+   * QLONE / WINCOMMERCE — bảng màu thương hiệu đỏ cho SIDEBAR nền trắng.
+   * Tên riêng (--qlone-*) để KHÔNG đè token --brand/--masan đang dùng nơi
+   * khác; chỉ áp trong khối .sidebar (phong cách 'Quality dashboard').
+   * ================================================================ */
+  --qlone-brand:    #E3010F;  /* đỏ thương hiệu — vạch active, nền badge */
+  --qlone-brand-d:  #B5000C;  /* đỏ đậm — chữ mục đang chọn */
+  --qlone-brand-l:  #FDECEC;  /* hồng nhạt — nền mục đang chọn */
+  --qlone-line:     #E4E7EC;  /* viền phải sidebar mảnh */
+  --qlone-ink2:     #344054;  /* chữ mục nav (xám đậm) */
+  --qlone-ink-str:  #1F2328;  /* chữ khi hover (đậm hơn) */
+  --qlone-soft:     #F9FAFB;  /* nền hover (xám rất nhạt) */
+  --qlone-mute:     #667085;  /* chữ mờ: tiêu đề nhóm, phase-note */
 }
 
 * { box-sizing: border-box; }
@@ -225,13 +239,13 @@ a:hover { text-decoration: underline; }
 .sidebar {
   width: var(--sidebar-w);
   flex-shrink: 0;
-  /* Kính mờ navy thương hiệu: fallback đặc TRƯỚC, lớp trong mờ SAU.
-   * Giữ nguyên toàn bộ quy tắc chữ/icon/active bên dưới để nhãn luôn rõ. */
-  background-color: var(--glass-sidebar-bg-solid);
-  background-color: var(--glass-sidebar-bg);
-  backdrop-filter: blur(var(--glass-blur));
-  -webkit-backdrop-filter: blur(var(--glass-blur));
-  border-right: none;
+  /* Phong cách QLOne 'Quality dashboard': NỀN TRẮNG đặc, viền phải mảnh.
+   * Gỡ hẳn kính mờ navy + blur (chỉ trong khối .sidebar) để chữ xám đậm
+   * đọc rõ trên nền trắng; các mặt kính khác của app giữ nguyên. */
+  background-color: #fff;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+  border-right: 1px solid var(--qlone-line);
   padding: 12px 0;
   display: flex;
   flex-direction: column;
@@ -242,7 +256,8 @@ a:hover { text-decoration: underline; }
   align-items: center;
   gap: 11px;
   padding: 9px 20px;
-  color: var(--masan-light-text);
+  color: var(--qlone-ink2);
+  font-weight: 500;
   font-size: 14px;
   border-left: 4px solid transparent;
 }
@@ -251,38 +266,39 @@ a:hover { text-decoration: underline; }
 .sidebar .nav-ic svg { width: 19px; height: 19px; }
 .sidebar li a:hover .nav-ic, .sidebar li a.active .nav-ic { opacity: 1; }
 .sidebar .nav-label { flex: 1; min-width: 0; }
-/* Badge đếm (vd receipt chờ phản hồi): tròn, nền sky, chữ navy đậm. */
+/* Badge đếm (vd receipt chờ phản hồi): tròn, nền ĐỎ thương hiệu, chữ trắng. */
 .sidebar .nav-badge {
   flex-shrink: 0; min-width: 20px; height: 20px; padding: 0 6px;
   display: inline-flex; align-items: center; justify-content: center;
-  border-radius: 10px; background: var(--masan-sky); color: var(--masan-950);
+  border-radius: 10px; background: var(--qlone-brand); color: #fff;
   font-size: 11px; font-weight: 700; line-height: 1;
 }
-.sidebar li a:hover { background: var(--masan-800); color: #fff; text-decoration: none; }
-/* Trạng thái đang chọn: nền --masan-700, chữ trắng đậm, vạch chỉ báo sky bên trái */
+/* Hover: nền xám rất nhạt, chữ đậm hơn — phong cách QLOne nền trắng. */
+.sidebar li a:hover { background: var(--qlone-soft); color: var(--qlone-ink-str); text-decoration: none; }
+/* Trạng thái đang chọn: nền hồng nhạt, chữ ĐỎ đậm, vạch dọc ĐỎ bên trái */
 .sidebar li a.active,
 .sidebar li a[aria-current="page"] {
-  background: var(--masan-700);
-  color: #fff;
-  font-weight: 600;
-  border-left: 4px solid var(--masan-sky);
+  background: var(--qlone-brand-l);
+  color: var(--qlone-brand-d);
+  font-weight: 700;
+  border-left: 4px solid var(--qlone-brand);
 }
-/* Tiêu đề nhóm nhỏ, in hoa, chữ mờ — gom nhóm trực quan các mục hiện có */
+/* Tiêu đề nhóm nhỏ, in hoa, chữ xám mờ trên nền trắng — gom nhóm trực quan */
 .sidebar-group {
   font-size: 11px;
   text-transform: uppercase;
-  color: var(--masan-group-head);
+  color: var(--qlone-mute);
   letter-spacing: .05em;
   padding: 12px 20px 4px;
 }
-/* Mục không có quyền (chú thích) trên nền navy */
-.sidebar li.muted { color: var(--masan-text-muted); padding: 9px 20px; font-size: 13px; }
+/* Mục không có quyền (chú thích) trên nền trắng */
+.sidebar li.muted { color: var(--qlone-mute); padding: 9px 20px; font-size: 13px; }
 .phase-note {
   margin-top: auto;
   padding: 12px 20px;
   font-size: 12px;
-  color: var(--masan-light-text);
-  opacity: .75;
+  color: var(--qlone-mute);
+  opacity: .9;
 }
 
 /* ---- Nội dung ---- */
@@ -1583,7 +1599,7 @@ html { scroll-behavior: smooth; }
     -webkit-backdrop-filter: none;
   }
   .sidebar {
-    background-color: var(--glass-sidebar-bg-solid);
+    background-color: #fff;
     backdrop-filter: none;
     -webkit-backdrop-filter: none;
   }
@@ -1596,6 +1612,6 @@ html { scroll-behavior: smooth; }
     background-color: var(--glass-bg-solid);
   }
   .sidebar {
-    background-color: var(--glass-sidebar-bg-solid);
+    background-color: #fff;
   }
 }
