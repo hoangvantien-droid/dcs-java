@@ -38,12 +38,12 @@
             <span th:unless="${u.active}">Ngừng</span>
           </td>
           <td data-label="Bộ phận">
-            <span class="chip" th:each="did : ${deptsByUser.get(u.userId)}"
-                  th:with="d=${depts.^[deptId == did]}">
-              <span th:text="${d != null} ? ${d.deptCode} : ${did}">dept</span>
+            <span class="chip" th:each="d : ${depts}"
+                  th:if="${deptsByUser.get(u.userId) != null and deptsByUser.get(u.userId).contains(d.deptId)}">
+              <span th:text="${d.deptCode}">dept</span>
               <form method="post" th:action="@{/admin/users/remove-dept}" style="display:inline">
                 <input type="hidden" name="user_id" th:value="${u.userId}">
-                <input type="hidden" name="dept_id" th:value="${did}">
+                <input type="hidden" name="dept_id" th:value="${d.deptId}">
                 <button type="submit" class="chip-x" title="Xóa phòng ban này">×</button>
               </form>
             </span>
